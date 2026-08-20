@@ -46,7 +46,10 @@
   border: 0;
   cursor: pointer;
   font: inherit;
-  transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease;
 }
 
 .button {
@@ -289,7 +292,9 @@
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, 4px);
-  transition: opacity 160ms ease, transform 160ms ease;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
   white-space: nowrap;
 }
 
@@ -376,16 +381,21 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 150px auto;
   gap: 12px;
-  align-items: end;
+  align-items: start;
   margin-top: 24px;
 }
 
 .goal-form label {
   display: grid;
+  grid-template-rows: auto 44px minmax(18px, auto);
   gap: 7px;
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 700;
+}
+
+.goal-form > .button {
+  margin-top: 24px;
 }
 
 .field-error {
@@ -518,6 +528,7 @@ textarea:focus-visible {
 
   .goal-form .button {
     width: 100%;
+    margin-top: 0;
   }
 
   .goal-item {
