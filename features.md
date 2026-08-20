@@ -41,7 +41,7 @@ type DailyFocusData = {
 
 Use `crypto.randomUUID()` for goal IDs, with a timestamp fallback if unavailable. Trim titles before storing them. Titles contain 1–120 characters, and durations are whole numbers from 1–1440 minutes.
 
-## Feature 1: Application Layout and Visual Structure
+## Feature 1: Application Layout and Visual Structure - DONE
 
 Present a calm, centered dashboard with a light background, rounded main surface, soft shadow, and the title **Focus on Today**. The screen contains a header, summary, progress bar, planned goals, goal form, completed goals, notes, and a small motivational line.
 
@@ -54,7 +54,7 @@ Acceptance criteria:
 
 Recommended components are `App`, `Header`, `FocusSummary`, `ProgressBar`, `GoalForm`, `GoalList`, `GoalItem`, `CompletedGoals`, and `NotesSection`. Plain CSS may be used consistently with the existing project.
 
-## Feature 2: Add Today's Goals
+## Feature 2: Add Today's Goals - DONE
 
 The form contains a goal title field, estimated-duration number field, and Add button. A user can create up to five goals for today's record.
 
@@ -224,3 +224,21 @@ Use semantic HTML, visible focus states, labelled inputs, keyboard-accessible bu
 10. Notes and reflection
 11. Start New Day confirmation/reset
 12. Empty states, responsive styling, and accessibility polish
+
+## Already Implemented Features
+
+### Feature 1: Application Layout and Visual Structure
+
+- A centered dashboard displays the **Focus on Today** title.
+- The layout includes distinct sections for the header, focus summary, progress bar, planned goals, goal form, completed goals, notes, and motivational copy.
+- The main content uses a light background, rounded surface, and soft shadow to create a calm, focus-oriented workspace.
+- The layout is responsive and adapts across mobile, tablet, and desktop screen sizes.
+- The application is organized into focused React components, including `App`, `Header`, `FocusSummary`, `ProgressBar`, `GoalForm`, `GoalList`, `GoalItem`, `CompletedGoals`, and `NotesSection`.
+
+### Feature 2: Add Today's Goals
+
+- `GoalForm` validates trimmed goal titles from 1–120 characters and whole-number durations from 1–1440 minutes, with field-associated validation messages.
+- The form disables adding goals while loading, after a storage failure, or once five goals exist, and displays a clear five-goal limit message.
+- New goals are created with stable IDs, planned status, timestamps, zero elapsed time, and appear in creation order.
+- Goals persist in the `todays-focus-db` IndexedDB database under the `dailyFocus` store using the current local date as the record key, and are restored after refresh.
+- Persistence failures are shown to the user and prevent further editing until storage is available.

@@ -63,6 +63,12 @@
   transform: translateY(-1px);
 }
 
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
 .button-primary {
   color: #fff;
   background: var(--accent);
@@ -136,6 +142,24 @@
   border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--surface);
+}
+
+.storage-error,
+.loading-message {
+  margin-top: 20px;
+  padding: 12px 14px;
+  border-radius: 9px;
+  font-size: 13px;
+}
+
+.storage-error {
+  color: #8c3f2f;
+  background: #fcece7;
+}
+
+.loading-message {
+  color: var(--text-muted);
+  background: var(--surface-alt);
 }
 
 .goal-limit,
@@ -228,6 +252,18 @@
   font-weight: 700;
 }
 
+.field-error {
+  color: #a04432;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.limit-message {
+  margin-top: 14px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
 input,
 textarea {
   width: 100%;
@@ -238,6 +274,10 @@ textarea {
   background: var(--surface-alt);
   font: inherit;
   font-size: 14px;
+}
+
+input[aria-invalid="true"] {
+  border-color: #c96c55;
 }
 
 input {

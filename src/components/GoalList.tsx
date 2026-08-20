@@ -1,11 +1,8 @@
 import GoalItem from "./GoalItem";
+import type { Goal } from "../types";
 
 type GoalListProps = {
-  goals: Array<{
-    title: string;
-    estimate: string;
-    status: string;
-  }>;
+  goals: Goal[];
 };
 
 function GoalList({ goals }: GoalListProps) {
@@ -16,13 +13,13 @@ function GoalList({ goals }: GoalListProps) {
           <p className="section-kicker">Your focus list</p>
           <h2 id="active-goals-heading">Active goals</h2>
         </div>
-        <span className="goal-limit">0 / 5</span>
+        <span className="goal-limit">{goals.length} / 5</span>
       </div>
       {goals.length === 0 ? (
         <p className="empty-state">Add up to 5 focus goals for today.</p>
       ) : (
         <div className="goal-list">
-          {goals.map((goal) => <GoalItem key={goal.title} {...goal} />)}
+          {goals.map((goal) => <GoalItem key={goal.id} goal={goal} />)}
         </div>
       )}
     </section>

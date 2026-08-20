@@ -1,16 +1,18 @@
+import type { Goal } from "../types";
+
 type GoalItemProps = {
-  title: string;
-  estimate: string;
-  status: string;
+  goal: Goal;
 };
 
-function GoalItem({ title, estimate, status }: GoalItemProps) {
+function GoalItem({ goal }: GoalItemProps) {
+  const { title, estimatedMinutes, status } = goal;
+
   return (
     <article className="goal-item">
       <div className="goal-marker" aria-hidden="true" />
       <div className="goal-content">
         <h3>{title}</h3>
-        <p>{estimate}</p>
+        <p>{estimatedMinutes} min estimated</p>
       </div>
       <span className="status-pill">{status}</span>
       <div className="goal-actions">
