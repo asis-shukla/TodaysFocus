@@ -261,6 +261,27 @@ function App() {
     }
   }
 
+  async function handleSaveNotes(notesText: string) {
+    if (!dailyFocus || storageError) {
+      throw new Error("Notes could not be saved");
+    }
+
+    const updatedRecord: DailyFocusData = {
+      ...dailyFocus,
+      notes: notesText,
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      await saveDailyFocus(updatedRecord);
+      setDailyFocus(updatedRecord);
+      setStorageError(null);
+    } catch {
+      setStorageError("Your notes could not be saved. Editing is disabled until storage is available.");
+      throw new Error("Notes could not be saved");
+    }
+  }
+
   const goals = dailyFocus?.goals ?? [];
   const completedGoals = goals.filter((goal) => goal.status === "completed").length;
   const plannedMinutes = goals.reduce((sum, goal) => sum + goal.estimatedMinutes, 0);
@@ -296,7 +317,11 @@ function App() {
         </div>
         <div className="dashboard-secondary">
           <CompletedGoals goals={goals.filter((goal) => goal.status === "completed")} />
-          <NotesSection />
+          <NotesSection
+            notes={dailyFocus?.notes ?? ""}
+            isDisabled={isLoading || Boolean(storageError)}
+            onSaveNotes={handleSaveNotes}
+          />
         </div>
       </div>
       <p className="motivation">You are unstoppable, keep pushing.</p>

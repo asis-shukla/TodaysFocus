@@ -267,7 +267,7 @@ Format values as `0m`, `45m`, or `1h 20m`, rounding down to whole displayed minu
 - Completed goals are permanently read-only and cannot be started, edited, paused, or completed again.
 - Goals remain in the completed section after refresh and until the day is reset.
 
-## Feature 10: Notes and Daily Reflection - PARTIALLY IMPLEMENTED
+## Feature 10: Notes and Daily Reflection - DONE
 
 **Description**: Provide a labelled multiline text area for blockers, wins, review, and reflection. Notes may be empty and save automatically with a debounce. Flush pending notes on blur where practical. Notes persist under today's record.
 
@@ -284,11 +284,67 @@ Format values as `0m`, `45m`, or `1h 20m`, rounding down to whole displayed minu
 
 **Implementation details**:
 
-- `NotesSection` component provides a labelled textarea for capturing daily reflection, blockers, wins, and notes.
-- The textarea has a placeholder: `What did you learn today?` and accessibility labeling.
-- Section heading: `Daily reflection` with supporting copy: `Capture a win, a blocker, or what you want to carry forward.`
-- **Current Status**: UI is implemented but persistence and state management are not yet connected. The textarea does not save or load notes from the daily record.
-- **Remaining Work**: onChange handler, debounced save to IndexedDB, blur flush, error handling, and disabled state during storage errors.
+- `NotesSection` component is a stateful React component that accepts three props:
+  - `notes: string` — the current notes from `dailyFocus.notes`
+  - `isDisabled: boolean` — disabled when loading or storage error occurs
+  - `onSaveNotes: (notes: string) => Promise<void>` — async callback to App.tsx to persist notes
+  
+- **Local state management**:
+  - `draftNotes: string` — tracks the user's current input; synced from props on mount/change via `useEffect`
+  - `isSaving: boolean` — indicates a save is in flight; disables the textarea during saves
+  - `localError: string | null` — component-level error message; shown when a save fails
+  - `debounceTimerRef` — useRef to manage debounce timer for cancellation and cleanup
+  - `isUnmountingRef` — useRef to prevent state updates after unmount
+
+- **Auto-save with 1000ms debounce**:
+  - `onChange` handler updates `draftNotes`, cancels any pending debounce timer, and schedules a new 1000ms timer
+  - The timer callback compares `draftNotes` to saved `notes` and only calls `onSaveNotes()` if they differ (prevents unnecessary saves)
+  - Textarea is disabled during saves (`disabled={isDisabled || isSaving}`)
+
+- **Blur flush**:
+  - `onBlur` handler immediately cancels the pending debounce timer and calls `saveNotes()` if `draftNotes !== notes`
+  - This ensures changes are saved when the user leaves the field without waiting for the debounce delay
+
+- **Unmount cleanup**:
+  - A `useEffect` cleanup function ensures any pending notes are saved before the component unmounts
+  - Uses `isUnmountingRef` to prevent state updates after unmount
+  - Fires the save asynchronously (fire-and-forget) to guard against async issues on page unload
+
+- **Error handling**:
+  - All save operations are wrapped in try/catch
+  - On error, local `localError` is set and the error is re-thrown to trigger App.tsx's global `storageError` state
+  - Textarea uses `aria-invalid="true"` and `aria-describedby={errorId}` for accessible error messaging
+  - Error message is shown below the textarea with `role="alert"` for screen reader announcement
+
+- **Accessibility**:
+  - Textarea is semantically labelled with `<label>` (visually hidden)
+  - Section heading uses `aria-labelledby="notes-heading"` linking to `<h2 id="notes-heading">`
+  - Form field has descriptive aria attributes when errors occur
+  - Placeholder text guides the user: `What did you learn today?`
+
+- **Props integration in App.tsx**:
+  - `App.tsx` has `handleSaveNotes(notesText: string)` async function that:
+    - Guards against calls when `!dailyFocus || storageError`
+    - Creates updated `DailyFocusData` record with new notes and fresh `updatedAt` timestamp
+    - Awaits `saveDailyFocus()` before updating in-memory state
+    - Clears global `storageError` on success, sets it on failure (follows GoalForm pattern)
+    - Re-throws error so NotesSection displays local error message
+  - NotesSection receives props: `notes={dailyFocus?.notes ?? ""}`, `isDisabled={isLoading || Boolean(storageError)}`, `onSaveNotes={handleSaveNotes}`
+  - On initial load and day rollover, existing notes are loaded from IndexedDB and synced into the textarea
+
+- **Persistence**:
+  - Notes are stored in the `dailyFocus` IndexedDB record under the `notes` field (string)
+  - Persists immediately on debounce timer fire, on blur, and on unmount (safety net)
+  - Empty notes (`""`) are valid and persist normally
+  - Notes are cleared when user runs `Start New Day` (Feature 13)
+
+- **Testing coverage**:
+  - Notes save after 1000ms of inactivity
+  - Notes save immediately on blur without waiting for debounce
+  - Notes save on unmount before component is destroyed
+  - Storage errors are displayed and disable the textarea
+  - Notes are recovered after page refresh
+  - Notes are cleared on `Start New Day`
 
 ## Feature 11: IndexedDB Persistence - DONE
 
