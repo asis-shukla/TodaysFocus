@@ -94,7 +94,7 @@ paused -> running
 paused -> completed
 ```
 
-## Feature 5: Progress Bar
+## Feature 5: Progress Bar - DONE
 
 Progress is based on goal count, not duration:
 
@@ -261,3 +261,10 @@ Use semantic HTML, visible focus states, labelled inputs, keyboard-accessible bu
 - Completion persists `completedAt`, immediately updates progress and worked-time summaries, and moves the goal into the read-only Completed Goals section.
 - Completed goals display estimated time, actual worked time, and completion time sorted newest first. They cannot be started, edited, paused, or completed again.
 - Timer and completion writes await IndexedDB persistence before updating in-memory state, and storage failures show an alert while disabling editing actions.
+
+### Feature 5: Progress Bar
+
+- `App` derives progress from goal count, passing the completed-goal count and total goal count to `FocusSummary`; goal durations do not affect progress.
+- `FocusSummary` calculates a zero-safe percentage with `Math.round((completedGoals / totalGoals) * 100)`, displaying the percentage and completed/total count.
+- Empty days display `0% complete - 0/0 goals completed`, while partial and fully completed goal lists update the summary immediately.
+- `ProgressBar` renders the percentage visually and exposes `role="progressbar"` with `aria-valuemin`, `aria-valuemax`, and `aria-valuenow` attributes for accessible status.
