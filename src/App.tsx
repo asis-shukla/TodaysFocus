@@ -6,6 +6,7 @@ import GoalForm from "./components/GoalForm";
 import GoalList from "./components/GoalList";
 import Header from "./components/Header";
 import NotesSection from "./components/NotesSection";
+import ResetConfirmationDialog from "./components/ResetConfirmationDialog";
 import { validateGoalInput, validateManualMinutes } from "./goalValidation";
 import { getDailyFocus, saveDailyFocus } from "./storage";
 import { completeGoal, getElapsedSeconds, pauseGoal, startGoal } from "./timer";
@@ -18,7 +19,11 @@ function App() {
   const [now, setNow] = useState(() => Date.now());
   const [dateKey, setDateKey] = useState(() => getLocalDateKey());
   const [isTimerActionPending, setIsTimerActionPending] = useState(false);
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [isResetPending, setIsResetPending] = useState(false);
+  const [resetVersion, setResetVersion] = useState(0);
   const timerActionInFlight = useRef(false);
+  const notesSaveInFlight = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     let isCurrent = true;
@@ -272,13 +277,53 @@ function App() {
       updatedAt: new Date().toISOString(),
     };
 
+    const saveOperation = (async () => {
+      try {
+        await saveDailyFocus(updatedRecord);
+        setDailyFocus(updatedRecord);
+        setStorageError(null);
+      } catch {
+        setStorageError("Your notes could not be saved. Editing is disabled until storage is available.");
+        throw new Error("Notes could not be saved");
+      }
+    })();
+    notesSaveInFlight.current = saveOperation;
+
     try {
-      await saveDailyFocus(updatedRecord);
-      setDailyFocus(updatedRecord);
+      await saveOperation;
+    } finally {
+      if (notesSaveInFlight.current === saveOperation) {
+        notesSaveInFlight.current = null;
+      }
+    }
+  }
+
+  async function handleStartNewDay() {
+    if (!dailyFocus || storageError || timerActionInFlight.current || isResetPending) {
+      return;
+    }
+
+    setIsResetPending(true);
+    try {
+      if (notesSaveInFlight.current) {
+        await notesSaveInFlight.current;
+      }
+
+      const emptyRecord: DailyFocusData = {
+        dateKey,
+        goals: [],
+        notes: "",
+        updatedAt: new Date().toISOString(),
+      };
+      await saveDailyFocus(emptyRecord);
+      setDailyFocus(emptyRecord);
+      setResetVersion((version) => version + 1);
+      setIsResetDialogOpen(false);
       setStorageError(null);
     } catch {
-      setStorageError("Your notes could not be saved. Editing is disabled until storage is available.");
-      throw new Error("Notes could not be saved");
+      setStorageError("Your day could not be reset. Editing is disabled until storage is available.");
+    } finally {
+      setIsResetPending(false);
     }
   }
 
@@ -291,10 +336,19 @@ function App() {
       0,
     ) / 60,
   );
+  const dateLabel = new Intl.DateTimeFormat(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(new Date(`${dateKey}T12:00:00`));
 
   return (
     <main className="dashboard-shell">
-      <Header />
+      <Header
+        dateLabel={dateLabel}
+        isDisabled={isLoading || Boolean(storageError) || isTimerActionPending}
+        onStartNewDay={() => setIsResetDialogOpen(true)}
+      />
       {storageError && <p className="storage-error" role="alert">{storageError}</p>}
       {isLoading && <p className="loading-message" role="status">Loading today&apos;s goals...</p>}
       <FocusSummary completedGoals={completedGoals} totalGoals={goals.length} plannedMinutes={plannedMinutes} workedMinutes={workedMinutes} />
@@ -320,11 +374,18 @@ function App() {
           <NotesSection
             notes={dailyFocus?.notes ?? ""}
             isDisabled={isLoading || Boolean(storageError)}
+            resetVersion={resetVersion}
             onSaveNotes={handleSaveNotes}
           />
         </div>
       </div>
       <p className="motivation">You are unstoppable, keep pushing.</p>
+      <ResetConfirmationDialog
+        isOpen={isResetDialogOpen}
+        isBusy={isResetPending}
+        onConfirm={() => void handleStartNewDay()}
+        onCancel={() => setIsResetDialogOpen(false)}
+      />
     </main>
   );
 }

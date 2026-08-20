@@ -404,9 +404,9 @@ function getLocalDateKey(date = new Date()) {
 }
 ```
 
-## Feature 13: Start New Day - NOT IMPLEMENTED
+## Feature 13: Start New Day - DONE
 
-**Description**: The header contains a clearly labelled **Start New Day** button. It opens an accessible confirmation dialog explaining that today's goals, timers, completed work, tracked durations, and notes will be cleared. It then replaces today's record with an empty record.
+**Description**: The header contains a clearly labelled **Start Fresh Day** button. It opens an accessible native confirmation dialog explaining that today's goals, timers, completed work, tracked durations, and notes will be cleared. It then replaces today's record with an empty record.
 
 **Why this is required**: Users need a clear, intentional way to reset their day when starting over. A confirmation dialog prevents accidental data loss.
 
@@ -421,14 +421,12 @@ function getLocalDateKey(date = new Date()) {
 
 **Implementation details**:
 
-- `Header` component displays a **Start New Day** button that accepts an `onStartNewDay` callback.
-- **Current Status**: Button is rendered but not functional.
-- **Remaining Work**:
-  - Accessible confirmation dialog component with title and explanatory text
-  - Dialog clearly states: "Today's goals, timers, completed work, tracked durations, and notes will be cleared"
-  - Explicit keyboard-accessible Confirm and Cancel buttons
-  - `handleStartNewDay` function in `App` that: stops any running timer, saves an empty record, updates state, and closes the dialog
-  - Wiring the callback from App to Header component
+- `Header` displays a **Start Fresh Day** button and the current local date, wired to App-owned reset state.
+- A native `<dialog>` provides the confirmation surface with a labelled title, clear data-loss explanation, explicit Confirm and Cancel buttons, Escape cancellation, and visible focus styles.
+- `handleStartNewDay` waits for any in-flight notes save, persists the empty record under today's existing local date key, updates in-memory state only after the write succeeds, and closes the dialog.
+- Replacing the record with an empty goals array stops any running timer and resets progress, planned time, worked time, completed goals, and notes.
+- Reset persistence failures preserve the existing in-memory record, show the storage error, and leave the reset recoverable.
+- Pending notes debounce work is cancelled when the reset record is loaded so stale notes cannot be restored after reset.
 
 **Expected Output Structure**:
 

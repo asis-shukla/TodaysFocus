@@ -3,31 +3,42 @@ import { useEffect, useRef, useState } from "react";
 interface NotesSectionProps {
   notes: string;
   isDisabled: boolean;
+  resetVersion: number;
   onSaveNotes: (notes: string) => Promise<void>;
 }
 
-function NotesSection({ notes, isDisabled, onSaveNotes }: NotesSectionProps) {
+function NotesSection({ notes, isDisabled, resetVersion, onSaveNotes }: NotesSectionProps) {
   const [draftNotes, setDraftNotes] = useState(notes);
   const [isSaving, setIsSaving] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isUnmountingRef = useRef(false);
   const draftNotesRef = useRef(notes);
+  const notesRef = useRef(notes);
+  const isDisabledRef = useRef(isDisabled);
+  const onSaveNotesRef = useRef(onSaveNotes);
 
-  // Keep ref in sync with draftNotes for use in cleanup function
   useEffect(() => {
     draftNotesRef.current = draftNotes;
-  }, [draftNotes]);
+    notesRef.current = notes;
+    isDisabledRef.current = isDisabled;
+    onSaveNotesRef.current = onSaveNotes;
+  }, [draftNotes, isDisabled, notes, onSaveNotes]);
 
-  // Sync props.notes into draftNotes when notes change (e.g., on refresh or day change)
   useEffect(() => {
-    setDraftNotes(notes);
-  }, [notes]);
+    const syncTimer = window.setTimeout(() => setDraftNotes(notes), 0);
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+
+    return () => window.clearTimeout(syncTimer);
+  }, [resetVersion, notes]);
 
   // Save notes to IndexedDB
   async function saveNotes(notesToSave: string) {
     // Only save if there's a difference
-    if (notesToSave === notes) {
+    if (notesToSave === notesRef.current) {
       return;
     }
 
@@ -36,7 +47,7 @@ function NotesSection({ notes, isDisabled, onSaveNotes }: NotesSectionProps) {
 
     try {
       await onSaveNotes(notesToSave);
-    } catch (error) {
+    } catch {
       // Error is already set by App.tsx storageError, but also display locally
       if (!isUnmountingRef.current) {
         setLocalError("Your notes could not be saved. Please try again.");
@@ -92,8 +103,8 @@ function NotesSection({ notes, isDisabled, onSaveNotes }: NotesSectionProps) {
       }
 
       // If there are unsaved changes, initiate save (fire and forget)
-      if (draftNotesRef.current !== notes && !isDisabled) {
-        void onSaveNotes(draftNotesRef.current);
+      if (draftNotesRef.current !== notesRef.current && !isDisabledRef.current) {
+        void onSaveNotesRef.current(draftNotesRef.current);
       }
     };
   }, []); // Empty dependency array - only run on unmount/unmount
