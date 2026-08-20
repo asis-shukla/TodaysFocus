@@ -1,6 +1,7 @@
 export type GoalInputErrors = {
   title?: string;
   duration?: string;
+  manualMinutes?: string;
 };
 
 export function validateGoalInput(title: string, duration: string): GoalInputErrors {
@@ -19,4 +20,14 @@ export function validateGoalInput(title: string, duration: string): GoalInputErr
   }
 
   return errors;
+}
+
+export function validateManualMinutes(value: string): string | undefined {
+  const minutes = Number(value);
+
+  if (!Number.isInteger(minutes) || minutes < 1 || minutes > 1440) {
+    return "Enter a whole number from 1 to 1440 minutes.";
+  }
+
+  return undefined;
 }

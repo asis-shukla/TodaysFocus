@@ -6,7 +6,7 @@ import GoalForm from "./components/GoalForm";
 import GoalList from "./components/GoalList";
 import Header from "./components/Header";
 import NotesSection from "./components/NotesSection";
-import { validateGoalInput } from "./goalValidation";
+import { validateGoalInput, validateManualMinutes } from "./goalValidation";
 import { getDailyFocus, saveDailyFocus } from "./storage";
 import { createGoalId, getLocalDateKey, type DailyFocusData, type Goal } from "./types";
 
@@ -14,6 +14,7 @@ function App() {
   const [dailyFocus, setDailyFocus] = useState<DailyFocusData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [storageError, setStorageError] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const dateKey = getLocalDateKey();
 
   useEffect(() => {
@@ -54,6 +55,15 @@ function App() {
       isCurrent = false;
     };
   }, [dateKey]);
+
+  useEffect(() => {
+    if (!dailyFocus?.goals.some((goal) => goal.status === "running")) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(intervalId);
+  }, [dailyFocus]);
 
   async function handleAddGoal(title: string, duration: string) {
     if (!dailyFocus || storageError || dailyFocus.goals.length >= 5) {
@@ -118,6 +128,103 @@ function App() {
     }
   }
 
+  async function persistGoals(goals: Goal[], errorMessage: string) {
+    if (!dailyFocus || storageError) {
+      throw new Error("Goal timer is unavailable");
+    }
+
+    const updatedRecord: DailyFocusData = {
+      ...dailyFocus,
+      goals,
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      await saveDailyFocus(updatedRecord);
+      setDailyFocus(updatedRecord);
+      setStorageError(null);
+    } catch {
+      setStorageError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }
+
+  function getElapsedSeconds(goal: Goal, timestamp = Date.now()) {
+    if (goal.status !== "running" || !goal.activeStartedAt) {
+      return goal.elapsedSeconds;
+    }
+
+    return goal.elapsedSeconds + Math.max(0, Math.floor((timestamp - Date.parse(goal.activeStartedAt)) / 1000));
+  }
+
+  async function handleStartGoal(goalId: string) {
+    if (!dailyFocus || storageError) {
+      return;
+    }
+
+    const startedAt = new Date().toISOString();
+    const goals = dailyFocus.goals.map((goal) => {
+      if (goal.id === goalId) {
+        return { ...goal, status: "running" as const, activeStartedAt: startedAt };
+      }
+
+      if (goal.status === "running") {
+        return {
+          ...goal,
+          status: "paused" as const,
+          elapsedSeconds: getElapsedSeconds(goal),
+          activeStartedAt: undefined,
+        };
+      }
+
+      return goal;
+    });
+
+    await persistGoals(goals, "Your timer could not be started. Editing is disabled until storage is available.");
+  }
+
+  async function handlePauseGoal(goalId: string) {
+    if (!dailyFocus || storageError) {
+      return;
+    }
+
+    const goals = dailyFocus.goals.map((goal) => goal.id === goalId && goal.status === "running"
+      ? { ...goal, status: "paused" as const, elapsedSeconds: getElapsedSeconds(goal), activeStartedAt: undefined }
+      : goal);
+
+    await persistGoals(goals, "Your timer could not be paused. Editing is disabled until storage is available.");
+  }
+
+  async function handleCompleteGoal(goalId: string, manualMinutes?: number) {
+    if (!dailyFocus || storageError) {
+      return;
+    }
+
+    const goal = dailyFocus.goals.find((candidate) => candidate.id === goalId);
+    if (!goal || goal.status === "completed") {
+      return;
+    }
+
+    const elapsedSeconds = getElapsedSeconds(goal);
+    if (elapsedSeconds === 0) {
+      if (manualMinutes === undefined || !Number.isInteger(manualMinutes) || validateManualMinutes(String(manualMinutes))) {
+        throw new Error("Enter a whole number from 1 to 1440 minutes.");
+      }
+    }
+
+    const goals = dailyFocus.goals.map((candidate) => candidate.id === goalId
+      ? {
+        ...candidate,
+        status: "completed" as const,
+        elapsedSeconds: elapsedSeconds + (elapsedSeconds === 0 ? (manualMinutes ?? 0) * 60 : 0),
+        activeStartedAt: undefined,
+        completedAt: new Date().toISOString(),
+      }
+      : candidate);
+
+    await persistGoals(goals, "Your goal could not be completed. Editing is disabled until storage is available.");
+  }
+
   const goals = dailyFocus?.goals ?? [];
   const completedGoals = goals.filter((goal) => goal.status === "completed").length;
   const plannedMinutes = goals.reduce((sum, goal) => sum + goal.estimatedMinutes, 0);
@@ -140,6 +247,10 @@ function App() {
             goals={goals}
             isDisabled={isLoading || Boolean(storageError)}
             onEditGoal={handleEditGoal}
+            now={now}
+            onStartGoal={handleStartGoal}
+            onPauseGoal={handlePauseGoal}
+            onCompleteGoal={handleCompleteGoal}
           />
           <GoalForm
             goalCount={goals.length}
@@ -148,7 +259,7 @@ function App() {
           />
         </div>
         <div className="dashboard-secondary">
-          <CompletedGoals />
+          <CompletedGoals goals={goals.filter((goal) => goal.status === "completed")} />
           <NotesSection />
         </div>
       </div>

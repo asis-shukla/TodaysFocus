@@ -231,6 +231,111 @@
   gap: 10px;
 }
 
+.manual-completion-form {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+}
+
+.completion-checkbox {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  background: transparent;
+}
+
+.completion-checkbox:hover,
+.completion-checkbox:focus-visible {
+  background: var(--accent-soft);
+}
+
+.completion-checkbox > span:first-child {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.completion-checkbox:hover > span:first-child,
+.completion-checkbox:focus-visible > span:first-child {
+  opacity: 0.25;
+}
+
+.completion-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: #fff;
+  background: var(--text-h);
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+  white-space: nowrap;
+}
+
+.completion-checkbox:hover .completion-tooltip,
+.completion-checkbox:focus-visible .completion-tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.manual-completion-form label {
+  display: grid;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.manual-completion-form input {
+  width: 110px;
+  height: 34px;
+}
+
+.manual-completion-form .field-error {
+  align-self: center;
+}
+
+.completed-goal-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.completed-goal {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.completed-goal h3 {
+  margin: 0;
+  color: var(--text-h);
+  font-size: 15px;
+}
+
+.completed-goal p,
+.completed-goal time {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
 .goal-edit-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 150px auto;
@@ -420,5 +525,15 @@ textarea:focus-visible {
   .goal-actions {
     width: 100%;
     margin-left: 26px;
+  }
+
+  .manual-completion-form {
+    flex-wrap: wrap;
+  }
+
+  .manual-completion-form .field-error {
+    position: static;
+    flex-basis: 100%;
+    margin-top: 0;
   }
 }

@@ -77,7 +77,7 @@ Acceptance criteria:
 - Cancelling an edit leaves the original goal unchanged.
 - Saved edits persist in IndexedDB.
 
-## Feature 4: Complete a Goal
+## Feature 4: Complete a Goal - DONE
 
 Completion stops a running timer, stores `completedAt`, stores final elapsed time, moves the goal to Completed Goals, and updates progress immediately.
 
@@ -251,3 +251,13 @@ Use semantic HTML, visible focus states, labelled inputs, keyboard-accessible bu
 - Cancelling discards draft changes without modifying the persisted or displayed goal.
 - Running, paused, and completed goals do not expose an Edit action; a goal remains locked after its timer has started.
 - Storage failures keep the edit form open, leave the goal unchanged, show the existing persistence error, and disable further editing.
+
+### Feature 4: Complete a Goal
+
+- Active goals provide Start, Pause, and a checkbox-style completion control with readable status and elapsed-time text. Hovering or focusing the checkbox reveals the `Complete Goal` tooltip.
+- Starting a goal automatically pauses any other running goal, persisting both status changes together so only one timer runs at a time.
+- A single App-level timer tick derives running elapsed time from `activeStartedAt`; pause and completion persist the final interval and clear the active timestamp.
+- Planned, running, and paused goals can complete through the defined status transitions. Goals with no tracked time reveal the inline, accessible manual-minutes field only after the completion checkbox is clicked. The field validates a whole number from 1–1440, and the entered minutes are added to `elapsedSeconds`.
+- Completion persists `completedAt`, immediately updates progress and worked-time summaries, and moves the goal into the read-only Completed Goals section.
+- Completed goals display estimated time, actual worked time, and completion time sorted newest first. They cannot be started, edited, paused, or completed again.
+- Timer and completion writes await IndexedDB persistence before updating in-memory state, and storage failures show an alert while disabling editing actions.

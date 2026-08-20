@@ -5,9 +5,13 @@ type GoalListProps = {
   goals: Goal[];
   isDisabled: boolean;
   onEditGoal: (goalId: string, title: string, duration: string) => Promise<void>;
+  now: number;
+  onStartGoal: (goalId: string) => Promise<void>;
+  onPauseGoal: (goalId: string) => Promise<void>;
+  onCompleteGoal: (goalId: string, manualMinutes?: number) => Promise<void>;
 };
 
-function GoalList({ goals, isDisabled, onEditGoal }: GoalListProps) {
+function GoalList({ goals, isDisabled, onEditGoal, now, onStartGoal, onPauseGoal, onCompleteGoal }: GoalListProps) {
   const activeGoals = goals.filter((goal) => goal.status !== "completed");
 
   return (
@@ -29,6 +33,10 @@ function GoalList({ goals, isDisabled, onEditGoal }: GoalListProps) {
               goal={goal}
               isDisabled={isDisabled}
               onEditGoal={onEditGoal}
+              now={now}
+              onStartGoal={onStartGoal}
+              onPauseGoal={onPauseGoal}
+              onCompleteGoal={onCompleteGoal}
             />
           ))}
         </div>
