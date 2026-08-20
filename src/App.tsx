@@ -89,6 +89,35 @@ function App() {
     }
   }
 
+  async function handleEditGoal(goalId: string, title: string, duration: string) {
+    if (!dailyFocus || storageError) {
+      throw new Error("Goal editing is unavailable");
+    }
+
+    const errors = validateGoalInput(title, duration);
+    const goal = dailyFocus.goals.find((candidate) => candidate.id === goalId);
+    if (Object.keys(errors).length > 0 || !goal || goal.status !== "planned") {
+      throw new Error("Goal could not be edited");
+    }
+
+    const updatedRecord: DailyFocusData = {
+      ...dailyFocus,
+      goals: dailyFocus.goals.map((candidate) => candidate.id === goalId
+        ? { ...candidate, title: title.trim(), estimatedMinutes: Number(duration) }
+        : candidate),
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      await saveDailyFocus(updatedRecord);
+      setDailyFocus(updatedRecord);
+      setStorageError(null);
+    } catch {
+      setStorageError("Your goal could not be saved. Editing is disabled until storage is available.");
+      throw new Error("Goal could not be saved");
+    }
+  }
+
   const goals = dailyFocus?.goals ?? [];
   const completedGoals = goals.filter((goal) => goal.status === "completed").length;
   const plannedMinutes = goals.reduce((sum, goal) => sum + goal.estimatedMinutes, 0);
@@ -107,7 +136,11 @@ function App() {
       <FocusSummary completedGoals={completedGoals} totalGoals={goals.length} plannedMinutes={plannedMinutes} workedMinutes={workedMinutes} />
       <div className="dashboard-grid">
         <div className="dashboard-primary">
-          <GoalList goals={goals} />
+          <GoalList
+            goals={goals}
+            isDisabled={isLoading || Boolean(storageError)}
+            onEditGoal={handleEditGoal}
+          />
           <GoalForm
             goalCount={goals.length}
             isDisabled={isLoading || Boolean(storageError)}

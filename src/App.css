@@ -190,6 +190,10 @@
   border-top: 1px solid var(--border);
 }
 
+.goal-item-editing {
+  align-items: stretch;
+}
+
 .goal-marker {
   width: 12px;
   height: 12px;
@@ -225,6 +229,26 @@
 
 .goal-actions {
   gap: 10px;
+}
+
+.goal-edit-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px auto;
+  gap: 12px;
+  align-items: end;
+  width: 100%;
+}
+
+.goal-edit-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.goal-edit-form > .field-error {
+  grid-column: 1 / -1;
 }
 
 .icon-button,

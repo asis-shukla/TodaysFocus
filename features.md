@@ -66,13 +66,13 @@ Acceptance criteria:
 - The Add button is disabled or a clear limit message is shown when five goals exist.
 - New goals appear in creation order and persist after refresh.
 
-## Feature 3: Edit Goals
+## Feature 3: Edit Goals - DONE
 
-Planned and paused goals may be edited inline or in an edit mode. Running goals must be paused before editing. Completed goals are not editable.
+Planned goals may be edited inline. Once a goal's timer has started, it is permanently locked for editing, including after it is paused. Running, paused, and completed goals are read-only.
 
 Acceptance criteria:
 
-- Title and estimated duration can be changed for planned or paused goals.
+- Title and estimated duration can be changed for planned goals that have not started timing.
 - The same title and duration validation used by the add form applies when saving edits.
 - Cancelling an edit leaves the original goal unchanged.
 - Saved edits persist in IndexedDB.
@@ -242,3 +242,12 @@ Use semantic HTML, visible focus states, labelled inputs, keyboard-accessible bu
 - New goals are created with stable IDs, planned status, timestamps, zero elapsed time, and appear in creation order.
 - Goals persist in the `todays-focus-db` IndexedDB database under the `dailyFocus` store using the current local date as the record key, and are restored after refresh.
 - Persistence failures are shown to the user and prevent further editing until storage is available.
+
+### Feature 3: Edit Goals
+
+- Planned goals support inline editing of their title and estimated duration through a controlled row-level form.
+- Edit fields reuse the add form's title and whole-minute duration validation, with field-associated accessibility messages.
+- Saving awaits the IndexedDB write before updating in-memory state and preserves the goal's timer, elapsed-time, status, creation, and completion fields.
+- Cancelling discards draft changes without modifying the persisted or displayed goal.
+- Running, paused, and completed goals do not expose an Edit action; a goal remains locked after its timer has started.
+- Storage failures keep the edit form open, leave the goal unchanged, show the existing persistence error, and disable further editing.
