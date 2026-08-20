@@ -109,7 +109,7 @@ const progressPercent =
 
 Display the percentage and count, such as `60% complete - 3/5 goals completed`. With no goals, display `0% complete - 0/0 goals completed`.
 
-## Feature 6: Goal Timer Controls
+## Feature 6: Goal Timer Controls - DONE
 
 Each active goal displays Start, Pause, and Complete controls plus readable elapsed time. Start records `activeStartedAt`; Pause adds the time since that timestamp to `elapsedSeconds`, changes status to paused, and clears the timestamp. Starting another goal pauses the existing running goal first.
 
@@ -268,3 +268,13 @@ Use semantic HTML, visible focus states, labelled inputs, keyboard-accessible bu
 - `FocusSummary` calculates a zero-safe percentage with `Math.round((completedGoals / totalGoals) * 100)`, displaying the percentage and completed/total count.
 - Empty days display `0% complete - 0/0 goals completed`, while partial and fully completed goal lists update the summary immediately.
 - `ProgressBar` renders the percentage visually and exposes `role="progressbar"` with `aria-valuemin`, `aria-valuemax`, and `aria-valuenow` attributes for accessible status.
+
+### Feature 6: Goal Timer Controls
+
+- `App` owns the timer state and uses one interval source to refresh the active timer once per second, with cleanup preventing duplicate intervals.
+- Timer transitions use timestamp-based elapsed-time helpers. Starting a goal records `activeStartedAt` and automatically pauses any other running goal while preserving its elapsed time.
+- Pausing folds the active interval into `elapsedSeconds` and clears `activeStartedAt`; completing a running goal includes its final interval before clearing the timestamp.
+- Timer writes await IndexedDB persistence before updating in-memory state, and a shared in-flight guard prevents overlapping Start, Pause, and Complete mutations.
+- Running goals recover after refresh from their persisted `activeStartedAt`; paused goals retain their saved elapsed time without an active interval.
+- When the local date changes, a running previous-day goal is paused at the midnight boundary and persisted before the current day is loaded or created.
+- Focused automated tests cover timestamp recovery, automatic pausing, pause and completion accounting, the single-running-goal invariant, and midnight rollover behavior.
