@@ -228,14 +228,6 @@
   align-items: stretch;
 }
 
-.goal-marker {
-  width: 12px;
-  height: 12px;
-  flex: 0 0 auto;
-  border: 2px solid var(--accent);
-  border-radius: 50%;
-}
-
 .goal-content {
   flex: 1;
 }
@@ -266,6 +258,7 @@
   background: var(--accent-soft);
   font-size: 12px;
   font-weight: 700;
+  text-transform: capitalize;
 }
 
 .goal-actions {

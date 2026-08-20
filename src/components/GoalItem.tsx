@@ -163,7 +163,6 @@ function GoalItem({ goal, isDisabled, onEditGoal, now, onStartGoal, onPauseGoal,
 
   return (
     <article className="goal-item">
-      <div className="goal-marker" aria-hidden="true" />
       <div className="goal-content">
         <div className="goal-title-row">
           <h3>{title}</h3>
