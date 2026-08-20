@@ -165,10 +165,12 @@ function GoalItem({ goal, isDisabled, onEditGoal, now, onStartGoal, onPauseGoal,
     <article className="goal-item">
       <div className="goal-marker" aria-hidden="true" />
       <div className="goal-content">
-        <h3>{title}</h3>
+        <div className="goal-title-row">
+          <h3>{title}</h3>
+          <span className="status-pill">{status}</span>
+        </div>
         <p>{estimatedMinutes} min estimated · {formatElapsed(elapsedSeconds)} elapsed</p>
       </div>
-      <span className="status-pill">{status === "running" ? "Running now" : status}</span>
       <span className="visually-hidden" aria-live="polite">{title} is {status}.</span>
       <div className="goal-actions">
         {status === "running" ? (
