@@ -248,7 +248,7 @@ function App() {
     const elapsedSeconds = getElapsedSeconds(goal);
     if (elapsedSeconds === 0) {
       if (manualMinutes === undefined || !Number.isInteger(manualMinutes) || validateManualMinutes(String(manualMinutes))) {
-        throw new Error("Enter a whole number from 1 to 1440 minutes.");
+        throw new Error("Worked time must be between 15 minutes and 240 minutes.");
       }
     }
 

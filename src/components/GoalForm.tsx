@@ -63,8 +63,8 @@ function GoalForm({ goalCount, isDisabled, onAddGoal }: GoalFormProps) {
             <input
               type="number"
               name="duration"
-              min="1"
-              max="1440"
+              min="15"
+              max="240"
               step="1"
               value={duration}
               placeholder="30"

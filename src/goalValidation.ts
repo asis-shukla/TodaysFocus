@@ -15,8 +15,8 @@ export function validateGoalInput(title: string, duration: string): GoalInputErr
     errors.title = "Goal titles must be 120 characters or fewer.";
   }
 
-  if (!Number.isInteger(durationValue) || durationValue < 1 || durationValue > 1440) {
-    errors.duration = "Enter a whole number from 1 to 1440 minutes.";
+  if (!Number.isInteger(durationValue) || durationValue < 15 || durationValue > 240) {
+    errors.duration = "Estimated time must be between 15 minutes and 240 minutes.";
   }
 
   return errors;
@@ -25,8 +25,8 @@ export function validateGoalInput(title: string, duration: string): GoalInputErr
 export function validateManualMinutes(value: string): string | undefined {
   const minutes = Number(value);
 
-  if (!Number.isInteger(minutes) || minutes < 1 || minutes > 1440) {
-    return "Enter a whole number from 1 to 1440 minutes.";
+  if (!Number.isInteger(minutes) || minutes < 15 || minutes > 240) {
+    return "Worked time must be between 15 minutes and 240 minutes.";
   }
 
   return undefined;

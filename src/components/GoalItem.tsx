@@ -137,8 +137,8 @@ function GoalItem({ goal, isDisabled, onEditGoal, now, onStartGoal, onPauseGoal,
             <div className="input-with-suffix">
               <input
                 type="number"
-                min="1"
-                max="1440"
+                min="15"
+                max="240"
                 step="1"
                 value={draftDuration}
                 aria-invalid={Boolean(errors.duration)}
@@ -188,8 +188,8 @@ function GoalItem({ goal, isDisabled, onEditGoal, now, onStartGoal, onPauseGoal,
               <span>Minutes worked</span>
               <input
                 type="number"
-                min="1"
-                max="1440"
+                min="15"
+                max="240"
                 step="1"
                 value={manualMinutes}
                 autoFocus

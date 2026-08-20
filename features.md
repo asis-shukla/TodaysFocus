@@ -39,7 +39,7 @@ type DailyFocusData = {
 };
 ```
 
-Use `crypto.randomUUID()` for goal IDs, with a timestamp fallback if unavailable. Trim titles before storing them. Titles contain 1–120 characters, and durations are whole numbers from 1–1440 minutes.
+Use `crypto.randomUUID()` for goal IDs, with a timestamp fallback if unavailable. Trim titles before storing them. Titles contain 1–120 characters, and durations are whole numbers from 15–240 minutes.
 
 # Features and Their Details
 
@@ -74,13 +74,13 @@ Use `crypto.randomUUID()` for goal IDs, with a timestamp fallback if unavailable
 
 - Blank or whitespace-only titles cannot be submitted.
 - Titles are trimmed and limited to 1–120 characters.
-- Duration must be an integer from 1–1440 minutes.
+- Duration must be an integer from 15–240 minutes.
 - The Add button is disabled or a clear limit message is shown when five goals exist.
 - New goals appear in creation order and persist after refresh.
 
 **Implementation details**:
 
-- `GoalForm` validates trimmed goal titles from 1–120 characters and whole-number durations from 1–1440 minutes, with field-associated validation messages.
+- `GoalForm` validates trimmed goal titles from 1–120 characters and whole-number durations from 15–240 minutes, with field-associated validation messages.
 - The form disables adding goals while loading, after a storage failure, or once five goals exist, and displays a clear five-goal limit message.
 - New goals are created with stable IDs, planned status, timestamps, zero elapsed time, and appear in creation order.
 - Goals persist in the `todays-focus-db` IndexedDB database under the `dailyFocus` store using the current local date as the record key, and are restored after refresh.
@@ -116,7 +116,7 @@ Use `crypto.randomUUID()` for goal IDs, with a timestamp fallback if unavailable
 
 **Acceptance criteria**:
 
-Completion can be initiated by a checkbox or Complete button. If `elapsedSeconds` is zero, the app must request a positive manual time estimate in whole minutes before completing. The manual value must be 1–1440 minutes and is added to `elapsedSeconds`. If a goal already has tracked timer time, completion does not prompt for additional time.
+Completion can be initiated by a checkbox or Complete button. If `elapsedSeconds` is zero, the app must request a positive manual time estimate in whole minutes before completing. The manual value must be 15–240 minutes and is added to `elapsedSeconds`. If a goal already has tracked timer time, completion does not prompt for additional time.
 
 Status transitions are:
 
@@ -134,7 +134,7 @@ paused -> completed
 - Active goals provide Start, Pause, and a checkbox-style completion control with readable status and elapsed-time text. Hovering or focusing the checkbox reveals the `Complete Goal` tooltip.
 - Starting a goal automatically pauses any other running goal, persisting both status changes together so only one timer runs at a time.
 - A single App-level timer tick derives running elapsed time from `activeStartedAt`; pause and completion persist the final interval and clear the active timestamp.
-- Planned, running, and paused goals can complete through the defined status transitions. Goals with no tracked time reveal the inline, accessible manual-minutes field only after the completion checkbox is clicked. The field validates a whole number from 1–1440, and the entered minutes are added to `elapsedSeconds`.
+- Planned, running, and paused goals can complete through the defined status transitions. Goals with no tracked time reveal the inline, accessible manual-minutes field only after the completion checkbox is clicked. The field validates a whole number from 15–240, and the entered minutes are added to `elapsedSeconds`.
 - Completion persists `completedAt`, immediately updates progress and worked-time summaries, and moves the goal into the read-only Completed Goals section.
 - Completed goals display estimated time, actual worked time, and completion time sorted newest first. They cannot be started, edited, paused, or completed again.
 - Timer and completion writes await IndexedDB persistence before updating in-memory state, and storage failures show an alert while disabling editing actions.
@@ -448,22 +448,22 @@ function getLocalDateKey(date = new Date()) {
 **Acceptance criteria**:
 
 - Enforce the five-goal total limit
-- Enforce title (1–120 characters after trimming) and duration (1–1440 minutes, whole number) rules
+- Enforce title (1–120 characters after trimming) and duration (15–240 minutes, whole number) rules
 - Enforce status transitions (planned/running/paused can complete, only planned can edit, etc.)
 - Completed goals cannot be started, edited, or deleted
 - Show clear, field-associated validation messages
 - Disable invalid submissions
 - Prevent duplicate timer intervals
-- Manual completion with zero tracked time requires a valid 1–1440 minute estimate
+- Manual completion with zero tracked time requires a valid 15–240 minute estimate
 
 **Implementation details**:
 
 - Title validation in `goalValidation.ts`: must be 1–120 characters after trimming, non-empty, not whitespace-only. Error message: `A goal title must be 1 to 120 characters.`
-- Duration validation: must be a whole number integer from 1–1440 minutes. Error message: `Duration must be a whole number from 1 to 1440 minutes.`
+- Duration validation: must be a whole number integer from 15–240 minutes. Error message: `Estimated time must be between 15 minutes and 240 minutes.`
 - Five-goal limit enforced in `GoalForm` (disables button and shows message) and in `handleAddGoal` (prevents addition).
 - Completed goals cannot be started, edited, or deleted; read-only after completion.
 - Status transition rules enforced: planned/running/paused goals can complete, only planned goals can be edited, only running/paused can pause/start.
-- Manual completion time validation: must be 1–1440 minutes when goal has zero elapsed time. Error shown in-line with `role="alert"`.
+- Manual completion time validation: must be 15–240 minutes when goal has zero elapsed time. Error shown in-line with `role="alert"`.
 - Duplicate timer intervals prevented by `timerActionInFlight` ref guard blocking overlapping mutations.
 
 ## Feature 15: Empty States and Motivational Copy - DONE
