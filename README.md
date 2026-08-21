@@ -1,4 +1,6 @@
 # Today's Focus
+https://focus-today-now.netlify.app/
+
 
 ## Make today count, one meaningful goal at a time.
 
