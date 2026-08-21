@@ -46,14 +46,6 @@ function Header({
     <header className="app-header">
       <div className="header-brand">
         <div className="header-brand-row">
-          <span className="header-brand-mark" aria-hidden="true">
-            <img
-              src="/favicon.svg"
-              alt="Today's Focus"
-              width={38}
-              height={38}
-            />
-          </span>
           <h1>Today&apos;s Focus</h1>
         </div>
         <div className="header-meta">

@@ -1,7 +1,7 @@
 .dashboard-shell {
   width: min(1120px, calc(100% - 40px));
   margin: 12px auto;
-  padding: 36px;
+  padding: 24px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 24px;
@@ -61,7 +61,6 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 8px;
-  margin-left: 50px;
 }
 
 .header-meta .eyebrow,
@@ -479,16 +478,17 @@
 }
 
 .settings-trigger {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
   border: 1px solid var(--border-strong);
   border-radius: 10px;
   background: var(--surface-alt);
 }
 
 .settings-trigger svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   fill: currentColor;
 }
 
