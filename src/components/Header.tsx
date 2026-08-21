@@ -44,16 +44,23 @@ function Header({
 
   return (
     <header className="app-header">
-      <div className="header-main">
-        <div className="header-date-row">
-          <p className="eyebrow">{dateLabel}</p>
+      <div className="header-brand">
+        <div className="header-brand-row">
+          <span className="header-brand-mark" aria-hidden="true">
+            <img
+              src="/favicon.svg"
+              alt="Today's Focus"
+              width={38}
+              height={38}
+            />
+          </span>
+          <h1>Today&apos;s Focus</h1>
         </div>
-        <img
-          className="brand-logo header-logo"
-          src="/logo.svg"
-          alt="Today's Focus"
-        />
-        <p className="header-copy">Make room for the work that matters.</p>
+        <div className="header-meta">
+          <p className="eyebrow">{dateLabel}</p>
+          <span className="header-meta-dot" aria-hidden="true" />
+          <p className="header-copy">Make room for the work that matters.</p>
+        </div>
       </div>
       <div className="header-actions">
         <button
