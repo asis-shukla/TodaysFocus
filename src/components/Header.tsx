@@ -48,7 +48,11 @@ function Header({
         <div className="header-date-row">
           <p className="eyebrow">{dateLabel}</p>
         </div>
-        <h1>Focus on Today</h1>
+        <img
+          className="brand-logo header-logo"
+          src="/logo.svg"
+          alt="Today's Focus"
+        />
         <p className="header-copy">Make room for the work that matters.</p>
       </div>
       <div className="header-actions">

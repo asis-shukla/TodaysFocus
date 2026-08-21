@@ -9,9 +9,18 @@ import NotesSection from "./components/NotesSection";
 import PreviousRecordsDashboard from "./components/PreviousRecordsDashboard";
 import ResetConfirmationDialog from "./components/ResetConfirmationDialog";
 import { validateGoalInput, validateManualMinutes } from "./goalValidation";
-import { getDailyFocus, getDailyFocusDateKeys, saveDailyFocus } from "./storage";
+import {
+  getDailyFocus,
+  getDailyFocusDateKeys,
+  saveDailyFocus,
+} from "./storage";
 import { completeGoal, getElapsedSeconds, pauseGoal, startGoal } from "./timer";
-import { createGoalId, getLocalDateKey, type DailyFocusData, type Goal } from "./types";
+import {
+  createGoalId,
+  getLocalDateKey,
+  type DailyFocusData,
+  type Goal,
+} from "./types";
 
 function App() {
   const [dailyFocus, setDailyFocus] = useState<DailyFocusData | null>(null);
@@ -24,11 +33,18 @@ function App() {
   const [isResetPending, setIsResetPending] = useState(false);
   const [resetVersion, setResetVersion] = useState(0);
   const [isPreviousRecordsOpen, setIsPreviousRecordsOpen] = useState(false);
-  const [previousRecordDateKeys, setPreviousRecordDateKeys] = useState<string[]>([]);
-  const [selectedPreviousDateKey, setSelectedPreviousDateKey] = useState<string | null>(null);
-  const [selectedPreviousRecord, setSelectedPreviousRecord] = useState<DailyFocusData | null>(null);
+  const [previousRecordDateKeys, setPreviousRecordDateKeys] = useState<
+    string[]
+  >([]);
+  const [selectedPreviousDateKey, setSelectedPreviousDateKey] = useState<
+    string | null
+  >(null);
+  const [selectedPreviousRecord, setSelectedPreviousRecord] =
+    useState<DailyFocusData | null>(null);
   const [isPreviousRecordLoading, setIsPreviousRecordLoading] = useState(false);
-  const [previousRecordsError, setPreviousRecordsError] = useState<string | null>(null);
+  const [previousRecordsError, setPreviousRecordsError] = useState<
+    string | null
+  >(null);
   const timerActionInFlight = useRef(false);
   const notesSaveInFlight = useRef<Promise<void> | null>(null);
 
@@ -55,7 +71,9 @@ function App() {
         }
       } catch {
         if (isCurrent) {
-          setStorageError("Your goals could not be loaded. Editing is disabled until storage is available.");
+          setStorageError(
+            "Your goals could not be loaded. Editing is disabled until storage is available.",
+          );
         }
       } finally {
         if (isCurrent) {
@@ -76,12 +94,20 @@ function App() {
       const timestamp = Date.now();
       const currentDateKey = getLocalDateKey(new Date(timestamp));
 
-      if (currentDateKey !== dateKey && dailyFocus && !timerActionInFlight.current) {
+      if (
+        currentDateKey !== dateKey &&
+        dailyFocus &&
+        !timerActionInFlight.current
+      ) {
         timerActionInFlight.current = true;
         setIsTimerActionPending(true);
 
-        const midnightTimestamp = new Date(`${currentDateKey}T00:00:00`).getTime();
-        const pausedGoals = dailyFocus.goals.map((goal) => pauseGoal(goal, midnightTimestamp));
+        const midnightTimestamp = new Date(
+          `${currentDateKey}T00:00:00`,
+        ).getTime();
+        const pausedGoals = dailyFocus.goals.map((goal) =>
+          pauseGoal(goal, midnightTimestamp),
+        );
         const previousDayRecord: DailyFocusData = {
           ...dailyFocus,
           goals: pausedGoals,
@@ -108,7 +134,9 @@ function App() {
             setStorageError(null);
           })
           .catch(() => {
-            setStorageError("Your goals could not be rolled over. Editing is disabled until storage is available.");
+            setStorageError(
+              "Your goals could not be rolled over. Editing is disabled until storage is available.",
+            );
           })
           .finally(() => {
             timerActionInFlight.current = false;
@@ -154,12 +182,18 @@ function App() {
       setDailyFocus(updatedRecord);
       setStorageError(null);
     } catch {
-      setStorageError("Your goal could not be saved. Editing is disabled until storage is available.");
+      setStorageError(
+        "Your goal could not be saved. Editing is disabled until storage is available.",
+      );
       throw new Error("Goal could not be saved");
     }
   }
 
-  async function handleEditGoal(goalId: string, title: string, duration: string) {
+  async function handleEditGoal(
+    goalId: string,
+    title: string,
+    duration: string,
+  ) {
     if (!dailyFocus || storageError) {
       throw new Error("Goal editing is unavailable");
     }
@@ -172,9 +206,15 @@ function App() {
 
     const updatedRecord: DailyFocusData = {
       ...dailyFocus,
-      goals: dailyFocus.goals.map((candidate) => candidate.id === goalId
-        ? { ...candidate, title: title.trim(), estimatedMinutes: Number(duration) }
-        : candidate),
+      goals: dailyFocus.goals.map((candidate) =>
+        candidate.id === goalId
+          ? {
+              ...candidate,
+              title: title.trim(),
+              estimatedMinutes: Number(duration),
+            }
+          : candidate,
+      ),
       updatedAt: new Date().toISOString(),
     };
 
@@ -183,7 +223,9 @@ function App() {
       setDailyFocus(updatedRecord);
       setStorageError(null);
     } catch {
-      setStorageError("Your goal could not be saved. Editing is disabled until storage is available.");
+      setStorageError(
+        "Your goal could not be saved. Editing is disabled until storage is available.",
+      );
       throw new Error("Goal could not be saved");
     }
   }
@@ -219,7 +261,10 @@ function App() {
     try {
       const startedAt = new Date().toISOString();
       const goals = startGoal(dailyFocus.goals, goalId, startedAt);
-      await persistGoals(goals, "Your timer could not be started. Editing is disabled until storage is available.");
+      await persistGoals(
+        goals,
+        "Your timer could not be started. Editing is disabled until storage is available.",
+      );
     } finally {
       timerActionInFlight.current = false;
       setIsTimerActionPending(false);
@@ -234,8 +279,13 @@ function App() {
     timerActionInFlight.current = true;
     setIsTimerActionPending(true);
     try {
-      const goals = dailyFocus.goals.map((goal) => goal.id === goalId ? pauseGoal(goal) : goal);
-      await persistGoals(goals, "Your timer could not be paused. Editing is disabled until storage is available.");
+      const goals = dailyFocus.goals.map((goal) =>
+        goal.id === goalId ? pauseGoal(goal) : goal,
+      );
+      await persistGoals(
+        goals,
+        "Your timer could not be paused. Editing is disabled until storage is available.",
+      );
     } finally {
       timerActionInFlight.current = false;
       setIsTimerActionPending(false);
@@ -254,19 +304,30 @@ function App() {
 
     const elapsedSeconds = getElapsedSeconds(goal);
     if (elapsedSeconds === 0) {
-      if (manualMinutes === undefined || !Number.isInteger(manualMinutes) || validateManualMinutes(String(manualMinutes))) {
-        throw new Error("Worked time must be between 15 minutes and 240 minutes.");
+      if (
+        manualMinutes === undefined ||
+        !Number.isInteger(manualMinutes) ||
+        validateManualMinutes(String(manualMinutes))
+      ) {
+        throw new Error(
+          "Worked time must be between 15 minutes and 240 minutes.",
+        );
       }
     }
 
     timerActionInFlight.current = true;
     setIsTimerActionPending(true);
     try {
-      const goals = dailyFocus.goals.map((candidate) => candidate.id === goalId
-        ? completeGoal(candidate, Date.now(), manualMinutes)
-        : candidate);
+      const goals = dailyFocus.goals.map((candidate) =>
+        candidate.id === goalId
+          ? completeGoal(candidate, Date.now(), manualMinutes)
+          : candidate,
+      );
 
-      await persistGoals(goals, "Your goal could not be completed. Editing is disabled until storage is available.");
+      await persistGoals(
+        goals,
+        "Your goal could not be completed. Editing is disabled until storage is available.",
+      );
     } finally {
       timerActionInFlight.current = false;
       setIsTimerActionPending(false);
@@ -290,7 +351,9 @@ function App() {
         setDailyFocus(updatedRecord);
         setStorageError(null);
       } catch {
-        setStorageError("Your notes could not be saved. Editing is disabled until storage is available.");
+        setStorageError(
+          "Your notes could not be saved. Editing is disabled until storage is available.",
+        );
         throw new Error("Notes could not be saved");
       }
     })();
@@ -306,7 +369,12 @@ function App() {
   }
 
   async function handleStartNewDay() {
-    if (!dailyFocus || storageError || timerActionInFlight.current || isResetPending) {
+    if (
+      !dailyFocus ||
+      storageError ||
+      timerActionInFlight.current ||
+      isResetPending
+    ) {
       return;
     }
 
@@ -328,7 +396,9 @@ function App() {
       setIsResetDialogOpen(false);
       setStorageError(null);
     } catch {
-      setStorageError("Your day could not be reset. Editing is disabled until storage is available.");
+      setStorageError(
+        "Your day could not be reset. Editing is disabled until storage is available.",
+      );
     } finally {
       setIsResetPending(false);
     }
@@ -365,7 +435,9 @@ function App() {
       setPreviousRecordDateKeys([]);
       setSelectedPreviousDateKey(null);
       setSelectedPreviousRecord(null);
-      setPreviousRecordsError("Previous records could not be loaded. Please try again.");
+      setPreviousRecordsError(
+        "Previous records could not be loaded. Please try again.",
+      );
     } finally {
       setIsPreviousRecordLoading(false);
     }
@@ -399,11 +471,17 @@ function App() {
   }
 
   const goals = dailyFocus?.goals ?? [];
-  const completedGoals = goals.filter((goal) => goal.status === "completed").length;
-  const plannedMinutes = goals.reduce((sum, goal) => sum + goal.estimatedMinutes, 0);
+  const completedGoals = goals.filter(
+    (goal) => goal.status === "completed",
+  ).length;
+  const plannedMinutes = goals.reduce(
+    (sum, goal) => sum + goal.estimatedMinutes,
+    0,
+  );
   const workedMinutes = Math.floor(
     goals.reduce(
-      (sum, goal) => sum + (goal.status === "completed" ? goal.elapsedSeconds : 0),
+      (sum, goal) =>
+        sum + (goal.status === "completed" ? goal.elapsedSeconds : 0),
       0,
     ) / 60,
   );
@@ -417,12 +495,25 @@ function App() {
     <main className="dashboard-shell">
       <Header
         dateLabel={dateLabel}
-        isDisabled={isLoading || Boolean(storageError) || isTimerActionPending || isPreviousRecordsOpen}
+        isDisabled={
+          isLoading ||
+          Boolean(storageError) ||
+          isTimerActionPending ||
+          isPreviousRecordsOpen
+        }
         onStartNewDay={() => setIsResetDialogOpen(true)}
         onShowPreviousRecords={() => void handleOpenPreviousRecords()}
       />
-      {storageError && <p className="storage-error" role="alert">{storageError}</p>}
-      {isLoading && <p className="loading-message" role="status">Loading today&apos;s goals...</p>}
+      {storageError && (
+        <p className="storage-error" role="alert">
+          {storageError}
+        </p>
+      )}
+      {isLoading && (
+        <p className="loading-message" role="status">
+          Loading today&apos;s goals...
+        </p>
+      )}
       {isPreviousRecordsOpen ? (
         <PreviousRecordsDashboard
           dateKeys={previousRecordDateKeys}
@@ -431,16 +522,25 @@ function App() {
           isLoading={isPreviousRecordLoading}
           error={previousRecordsError}
           onClose={handleClosePreviousRecords}
-          onSelectDate={(previousDateKey) => void handleSelectPreviousDate(previousDateKey)}
+          onSelectDate={(previousDateKey) =>
+            void handleSelectPreviousDate(previousDateKey)
+          }
         />
       ) : (
         <>
-          <FocusSummary completedGoals={completedGoals} totalGoals={goals.length} plannedMinutes={plannedMinutes} workedMinutes={workedMinutes} />
+          <FocusSummary
+            completedGoals={completedGoals}
+            totalGoals={goals.length}
+            plannedMinutes={plannedMinutes}
+            workedMinutes={workedMinutes}
+          />
           <div className="dashboard-grid">
             <div className="dashboard-primary">
               <GoalList
                 goals={goals}
-                isDisabled={isLoading || Boolean(storageError) || isTimerActionPending}
+                isDisabled={
+                  isLoading || Boolean(storageError) || isTimerActionPending
+                }
                 onEditGoal={handleEditGoal}
                 now={now}
                 onStartGoal={handleStartGoal}
@@ -454,7 +554,9 @@ function App() {
               />
             </div>
             <div className="dashboard-secondary">
-              <CompletedGoals goals={goals.filter((goal) => goal.status === "completed")} />
+              <CompletedGoals
+                goals={goals.filter((goal) => goal.status === "completed")}
+              />
               <NotesSection
                 notes={dailyFocus?.notes ?? ""}
                 isDisabled={isLoading || Boolean(storageError)}
@@ -464,7 +566,6 @@ function App() {
             </div>
           </div>
           <p className="motivation">You are unstoppable, keep pushing.</p>
-          <img className="brand-logo footer-logo" src="/logo.svg" alt="Today's Focus" />
         </>
       )}
       <ResetConfirmationDialog

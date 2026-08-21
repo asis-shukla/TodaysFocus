@@ -32,10 +32,6 @@
   object-fit: contain;
 }
 
-.footer-logo {
-  margin: 24px auto 0;
-}
-
 .header-actions {
   display: flex;
   align-items: center;
@@ -156,7 +152,7 @@
 }
 
 .summary-panel {
-  margin-top: 40px;
+  margin-top: 24px;
   padding: 28px;
   border-radius: 16px;
   background: var(--accent-soft);
