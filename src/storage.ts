@@ -29,3 +29,11 @@ export async function saveDailyFocus(record: DailyFocusData) {
   const database = await databasePromise;
   await database.put(STORE_NAME, record);
 }
+
+export async function getDailyFocusDateKeys() {
+  const database = await databasePromise;
+  const keys = await database.getAllKeys(STORE_NAME);
+  return keys
+    .map((key) => String(key))
+    .sort((first, second) => second.localeCompare(first));
+}

@@ -18,6 +18,29 @@
   align-items: center;
 }
 
+.header-main {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+.header-date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+}
+
+.header-date-row .eyebrow {
+  margin: 0;
+}
+
+.header-settings {
+  position: relative;
+  flex: 0 0 auto;
+}
+
 .app-header,
 .summary-heading,
 .section-heading {
@@ -401,6 +424,142 @@
   font-weight: 700;
 }
 
+.settings-trigger {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface-alt);
+}
+
+.settings-trigger svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.settings-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 210px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  z-index: 3;
+}
+
+.settings-menu-item {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  color: var(--text-h);
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.settings-menu-item:hover,
+.settings-menu-item:focus-visible {
+  background: var(--accent-soft);
+}
+
+.previous-records {
+  margin-top: 28px;
+}
+
+.previous-records-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.previous-records-grid {
+  display: grid;
+  grid-template-columns: minmax(230px, 300px) minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.records-date-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.records-date-button {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  color: var(--text);
+  background: var(--surface-alt);
+  font: inherit;
+  cursor: pointer;
+}
+
+.records-date-button > span:last-child {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.records-date-button-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.records-details {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.records-summary {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.records-goal-list {
+  display: grid;
+  gap: 10px;
+}
+
+.records-goal {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-alt);
+}
+
+.records-goal h4,
+.records-notes h4 {
+  margin: 0;
+  color: var(--text-h);
+}
+
+.records-goal p,
+.records-goal time,
+.records-notes p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.records-notes {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
 .goal-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 150px auto;
@@ -528,6 +687,19 @@ textarea:focus-visible {
   }
 }
 
+@media (max-width: 1100px) {
+  .app-header {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .app-header .button {
+    width: 100%;
+  }
+}
+
 @media (max-width: 520px) {
   .app-header,
   .summary-heading,
@@ -537,8 +709,19 @@ textarea:focus-visible {
     gap: 14px;
   }
 
+  .app-header {
+    width: 100%;
+    align-items: stretch;
+  }
+
   .app-header .button {
     width: 100%;
+  }
+
+  .settings-menu {
+    left: auto;
+    right: 0;
+    width: min(240px, calc(100vw - 48px));
   }
 
   .reset-dialog-actions {
@@ -555,6 +738,18 @@ textarea:focus-visible {
   }
 
   .goal-form {
+    grid-template-columns: 1fr;
+  }
+
+  .previous-records-header {
+    flex-direction: column;
+  }
+
+  .previous-records-header .button {
+    width: 100%;
+  }
+
+  .previous-records-grid {
     grid-template-columns: 1fr;
   }
 

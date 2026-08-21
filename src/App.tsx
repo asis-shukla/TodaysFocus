@@ -6,9 +6,10 @@ import GoalForm from "./components/GoalForm";
 import GoalList from "./components/GoalList";
 import Header from "./components/Header";
 import NotesSection from "./components/NotesSection";
+import PreviousRecordsDashboard from "./components/PreviousRecordsDashboard";
 import ResetConfirmationDialog from "./components/ResetConfirmationDialog";
 import { validateGoalInput, validateManualMinutes } from "./goalValidation";
-import { getDailyFocus, saveDailyFocus } from "./storage";
+import { getDailyFocus, getDailyFocusDateKeys, saveDailyFocus } from "./storage";
 import { completeGoal, getElapsedSeconds, pauseGoal, startGoal } from "./timer";
 import { createGoalId, getLocalDateKey, type DailyFocusData, type Goal } from "./types";
 
@@ -22,6 +23,12 @@ function App() {
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [isResetPending, setIsResetPending] = useState(false);
   const [resetVersion, setResetVersion] = useState(0);
+  const [isPreviousRecordsOpen, setIsPreviousRecordsOpen] = useState(false);
+  const [previousRecordDateKeys, setPreviousRecordDateKeys] = useState<string[]>([]);
+  const [selectedPreviousDateKey, setSelectedPreviousDateKey] = useState<string | null>(null);
+  const [selectedPreviousRecord, setSelectedPreviousRecord] = useState<DailyFocusData | null>(null);
+  const [isPreviousRecordLoading, setIsPreviousRecordLoading] = useState(false);
+  const [previousRecordsError, setPreviousRecordsError] = useState<string | null>(null);
   const timerActionInFlight = useRef(false);
   const notesSaveInFlight = useRef<Promise<void> | null>(null);
 
@@ -327,6 +334,70 @@ function App() {
     }
   }
 
+  async function handleOpenPreviousRecords() {
+    setIsPreviousRecordsOpen(true);
+    setIsPreviousRecordLoading(true);
+    setPreviousRecordsError(null);
+
+    try {
+      const allDateKeys = await getDailyFocusDateKeys();
+      const historicalDateKeys = allDateKeys.filter((key) => key !== dateKey);
+      setPreviousRecordDateKeys(historicalDateKeys);
+
+      if (historicalDateKeys.length === 0) {
+        setSelectedPreviousDateKey(null);
+        setSelectedPreviousRecord(null);
+        return;
+      }
+
+      const newestDateKey = historicalDateKeys[0];
+      setSelectedPreviousDateKey(newestDateKey);
+      const record = await getDailyFocus(newestDateKey);
+
+      if (!record) {
+        setSelectedPreviousRecord(null);
+        setPreviousRecordsError("The selected record is unavailable.");
+        return;
+      }
+
+      setSelectedPreviousRecord(record);
+    } catch {
+      setPreviousRecordDateKeys([]);
+      setSelectedPreviousDateKey(null);
+      setSelectedPreviousRecord(null);
+      setPreviousRecordsError("Previous records could not be loaded. Please try again.");
+    } finally {
+      setIsPreviousRecordLoading(false);
+    }
+  }
+
+  async function handleSelectPreviousDate(dateKeyToLoad: string) {
+    setSelectedPreviousDateKey(dateKeyToLoad);
+    setIsPreviousRecordLoading(true);
+    setPreviousRecordsError(null);
+
+    try {
+      const record = await getDailyFocus(dateKeyToLoad);
+      if (!record) {
+        setSelectedPreviousRecord(null);
+        setPreviousRecordsError("This record is unavailable.");
+        return;
+      }
+
+      setSelectedPreviousRecord(record);
+    } catch {
+      setSelectedPreviousRecord(null);
+      setPreviousRecordsError("The selected record could not be loaded.");
+    } finally {
+      setIsPreviousRecordLoading(false);
+    }
+  }
+
+  function handleClosePreviousRecords() {
+    setIsPreviousRecordsOpen(false);
+    setPreviousRecordsError(null);
+  }
+
   const goals = dailyFocus?.goals ?? [];
   const completedGoals = goals.filter((goal) => goal.status === "completed").length;
   const plannedMinutes = goals.reduce((sum, goal) => sum + goal.estimatedMinutes, 0);
@@ -346,40 +417,55 @@ function App() {
     <main className="dashboard-shell">
       <Header
         dateLabel={dateLabel}
-        isDisabled={isLoading || Boolean(storageError) || isTimerActionPending}
+        isDisabled={isLoading || Boolean(storageError) || isTimerActionPending || isPreviousRecordsOpen}
         onStartNewDay={() => setIsResetDialogOpen(true)}
+        onShowPreviousRecords={() => void handleOpenPreviousRecords()}
       />
       {storageError && <p className="storage-error" role="alert">{storageError}</p>}
       {isLoading && <p className="loading-message" role="status">Loading today&apos;s goals...</p>}
-      <FocusSummary completedGoals={completedGoals} totalGoals={goals.length} plannedMinutes={plannedMinutes} workedMinutes={workedMinutes} />
-      <div className="dashboard-grid">
-        <div className="dashboard-primary">
-          <GoalList
-            goals={goals}
-            isDisabled={isLoading || Boolean(storageError) || isTimerActionPending}
-            onEditGoal={handleEditGoal}
-            now={now}
-            onStartGoal={handleStartGoal}
-            onPauseGoal={handlePauseGoal}
-            onCompleteGoal={handleCompleteGoal}
-          />
-          <GoalForm
-            goalCount={goals.length}
-            isDisabled={isLoading || Boolean(storageError)}
-            onAddGoal={handleAddGoal}
-          />
-        </div>
-        <div className="dashboard-secondary">
-          <CompletedGoals goals={goals.filter((goal) => goal.status === "completed")} />
-          <NotesSection
-            notes={dailyFocus?.notes ?? ""}
-            isDisabled={isLoading || Boolean(storageError)}
-            resetVersion={resetVersion}
-            onSaveNotes={handleSaveNotes}
-          />
-        </div>
-      </div>
-      <p className="motivation">You are unstoppable, keep pushing.</p>
+      {isPreviousRecordsOpen ? (
+        <PreviousRecordsDashboard
+          dateKeys={previousRecordDateKeys}
+          selectedDateKey={selectedPreviousDateKey}
+          selectedRecord={selectedPreviousRecord}
+          isLoading={isPreviousRecordLoading}
+          error={previousRecordsError}
+          onClose={handleClosePreviousRecords}
+          onSelectDate={(previousDateKey) => void handleSelectPreviousDate(previousDateKey)}
+        />
+      ) : (
+        <>
+          <FocusSummary completedGoals={completedGoals} totalGoals={goals.length} plannedMinutes={plannedMinutes} workedMinutes={workedMinutes} />
+          <div className="dashboard-grid">
+            <div className="dashboard-primary">
+              <GoalList
+                goals={goals}
+                isDisabled={isLoading || Boolean(storageError) || isTimerActionPending}
+                onEditGoal={handleEditGoal}
+                now={now}
+                onStartGoal={handleStartGoal}
+                onPauseGoal={handlePauseGoal}
+                onCompleteGoal={handleCompleteGoal}
+              />
+              <GoalForm
+                goalCount={goals.length}
+                isDisabled={isLoading || Boolean(storageError)}
+                onAddGoal={handleAddGoal}
+              />
+            </div>
+            <div className="dashboard-secondary">
+              <CompletedGoals goals={goals.filter((goal) => goal.status === "completed")} />
+              <NotesSection
+                notes={dailyFocus?.notes ?? ""}
+                isDisabled={isLoading || Boolean(storageError)}
+                resetVersion={resetVersion}
+                onSaveNotes={handleSaveNotes}
+              />
+            </div>
+          </div>
+          <p className="motivation">You are unstoppable, keep pushing.</p>
+        </>
+      )}
       <ResetConfirmationDialog
         isOpen={isResetDialogOpen}
         isBusy={isResetPending}

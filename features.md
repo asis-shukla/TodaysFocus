@@ -522,6 +522,42 @@ function getLocalDateKey(date = new Date()) {
 - **Responsive Layout**: Dashboard uses CSS Grid and Flexbox with `max-width: 1120px` for desktop, adapts to mobile with `calc(100% - 40px)` margins.
 - **Touch-Friendly**: Buttons and interactive elements have sufficient padding and touch target sizes for mobile devices.
 
+## Feature 17: Previous Records Dashboard - DONE
+
+**Description**: Allow users to view all daily records stored in IndexedDB. A settings icon above the **Start Fresh Day** button opens a dropdown menu containing **Show previous records**. Selecting that menu item opens a records dashboard where the user can select a date on the left and view that date's goals, time summaries, completion progress, and notes on the right.
+
+**Why this is required**: Automatic date rollover keeps the main workspace focused on today, but users still need a way to review their earlier work and reflections. A dedicated read-only dashboard provides access to that history without changing the current-day workflow.
+
+**Acceptance criteria**:
+
+- A settings icon is displayed directly above the **Start Fresh Day** button in the header.
+- Activating the settings icon opens a dropdown menu.
+- The dropdown contains a clearly labelled **Show previous records** option.
+- Selecting **Show previous records** opens the previous-records dashboard.
+- The dashboard displays available daily record dates in a selectable list on the left side.
+- Selecting a date displays that record's data on the right side.
+- The selected record displays its goals, goal statuses, estimated durations, worked durations, completion progress, completion times, and daily notes.
+- Dates are displayed in a clear, localized format and ordered with the newest record first.
+- The date list shows previous records only (current day excluded), ordered newest first.
+- Previous records are read-only. Users cannot start, pause, complete, edit, delete, or reset goals from this dashboard.
+- If no stored records exist, the dashboard displays a clear empty state explaining that previous records are unavailable.
+- Closing or leaving the dashboard returns the user to the current-day dashboard without changing the current-day record.
+- The dashboard is keyboard accessible, responsive, and provides visible focus states for the settings button, menu item, date choices, and close/navigation controls.
+- Storage and loading failures display a visible error and do not silently present incomplete historical data.
+
+**Implementation details**:
+
+- `Header` now includes a settings icon button positioned above **Start Fresh Day**. Activating it opens a dropdown menu with **Show previous records**.
+- The dropdown closes when **Show previous records** is selected, when the user clicks outside the menu, and when Escape is pressed.
+- App-level view state toggles between the main today dashboard and a full-page in-app previous-records view. Returning from that view restores the current-day dashboard without changing the current-day record.
+- The previous-records dashboard uses a left-side date list and right-side record details layout. Dates are localized for display and sorted by descending `dateKey`.
+- The date list intentionally excludes the current local date, showing prior records only. When records exist, the newest previous date is auto-selected.
+- Storage reuses the existing IndexedDB database `todays-focus-db` and `dailyFocus` store. A new read helper enumerates stored `dateKey` values for the left panel.
+- Selecting a date reads that `DailyFocusData` record and displays it read-only: goals with statuses, estimated durations, persisted elapsed durations, completion progress, completion timestamps, and notes.
+- Historical running goals are displayed with persisted elapsed values only. The history view does not start timers or derive extra elapsed time from the current clock.
+- History loading and selection failures surface visible errors within the history view and do not silently render partial data.
+- The history view keeps destructive day actions out of scope for historical data; users cannot start, pause, complete, edit, delete, or reset historical goals from this screen.
+
 ## Suggested Development Order
 
 1. Application layout and visual structure
@@ -535,4 +571,5 @@ function getLocalDateKey(date = new Date()) {
 9. Completed goals section
 10. Notes and reflection
 11. Start New Day confirmation/reset
-12. Empty states, responsive styling, and accessibility polish
+12. Previous records dashboard
+13. Empty states, responsive styling, and accessibility polish
