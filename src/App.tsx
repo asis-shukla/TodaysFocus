@@ -464,6 +464,7 @@ function App() {
             </div>
           </div>
           <p className="motivation">You are unstoppable, keep pushing.</p>
+          <img className="brand-logo footer-logo" src="/logo.svg" alt="Today's Focus" />
         </>
       )}
       <ResetConfirmationDialog
