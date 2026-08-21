@@ -73,7 +73,7 @@ function PreviousRecordsDashboard({
             <h3 id="previous-records-dates-heading">Dates</h3>
           </div>
           {dateKeys.length === 0 ? (
-            <p className="empty-state">Previous records are unavailable right now.</p>
+            <p className="empty-state">No previous records found.</p>
           ) : (
             <div className="records-date-list" role="listbox" aria-label="Previous record dates">
               {dateKeys.map((dateKey) => (
