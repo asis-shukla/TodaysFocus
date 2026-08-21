@@ -1,0 +1,23 @@
+<svg width="720" height="180" viewBox="0 0 720 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Today's Focus logo</title>
+  <desc id="desc">A green focus ring with a sunrise and check mark beside the words Today's Focus.</desc>
+  <rect width="720" height="180" rx="36" fill="#F3FAEF"/>
+  <g transform="translate(42 32)">
+    <circle cx="58" cy="58" r="54" fill="#FFFFFF" stroke="#DDEAD6" stroke-width="8"/>
+    <circle cx="58" cy="58" r="39" fill="#E8F5DF"/>
+    <path d="M58 25V15" stroke="#45A400" stroke-width="8" stroke-linecap="round"/>
+    <path d="M58 101V91" stroke="#45A400" stroke-width="8" stroke-linecap="round"/>
+    <path d="M91 58H101" stroke="#45A400" stroke-width="8" stroke-linecap="round"/>
+    <path d="M15 58H25" stroke="#45A400" stroke-width="8" stroke-linecap="round"/>
+    <path d="M81.3 34.7L88.4 27.6" stroke="#45A400" stroke-width="8" stroke-linecap="round"/>
+    <path d="M27.6 88.4L34.7 81.3" stroke="#45A400" stroke-width="8" stroke-linecap="round"/>
+    <path d="M81.3 81.3L88.4 88.4" stroke="#45A400" stroke-width="8" stroke-linecap="round"/>
+    <path d="M27.6 27.6L34.7 34.7" stroke="#45A400" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="58" cy="58" r="24" fill="#FFD233"/>
+    <path d="M44 58.5L54.2 68.2L74 47.8" stroke="#5B461C" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="190" y="80" fill="#45A400" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="54" font-weight="800">Today's</text>
+  <text x="190" y="132" fill="#5B461C" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="54" font-weight="800">Focus</text>
+  <rect x="420" y="118" width="178" height="12" rx="6" fill="#DDEAD6"/>
+  <rect x="420" y="118" width="112" height="12" rx="6" fill="#45A400"/>
+</svg>

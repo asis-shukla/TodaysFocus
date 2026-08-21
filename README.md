@@ -1,77 +1,88 @@
-# React + TypeScript + Vite
+# Today's Focus
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Make today count, one meaningful goal at a time.
 
-Currently, two official plugins are available:
+Today's Focus is a calm, local-first productivity workspace for turning a long to-do list into a small plan you can actually finish. Choose up to five focus goals, give each one a realistic estimate, work with a persistent timer, and close the day with a quick reflection.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+There is no account, feed, or noisy productivity system to maintain. Your daily record stays in the browser, so the app keeps attention on the work in front of you.
 
-## React Compiler
+## Why it works
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+- **A five-goal limit** keeps the day focused and makes tradeoffs visible.
+- **One active timer** protects attention by automatically pausing the previous goal when you switch.
+- **Progress by completion** makes the finish line easy to understand: every completed goal moves the day forward.
+- **Planned versus worked time** shows the difference between your intention and the time you actually invested.
+- **A daily reflection** gives wins, blockers, and lessons a place to land.
+- **Read-only history** lets you review previous days without pulling old work back into today's workspace.
 
-Note: This will impact Vite dev & build performances.
+## Features
 
-## Expanding the ESLint configuration
+### Plan with intention
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Add up to five goals for the current local day. Titles are trimmed and validated, durations are constrained to practical 15-240 minute estimates, and planned goals can be edited until timing begins.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Focus with a reliable timer
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Start, pause, and complete goals from the same workspace. Timer state is based on persisted timestamps, so a running goal survives a refresh. The app ensures that only one goal can run at a time and safely pauses an active goal at midnight.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Finish with proof of progress
 
+Completed goals move into a read-only record with estimated time, actual worked time, and completion time. Goals without timer time can still be completed with a validated manual work estimate.
+
+### Reflect and review
+
+Daily notes save automatically while you write and flush on blur. Previous records provide a read-only view of earlier goals, totals, completion progress, and reflections. When a day needs a clean start, **Start Fresh Day** resets the current record only after confirmation.
+
+### Stay in control of your data
+
+All records are stored in IndexedDB in the browser. There is no backend, login, or external API. Storage failures are surfaced clearly and editing is disabled rather than risking silent data loss.
+
+## Getting started
+
+### Requirements
+
+- Node.js
+- pnpm
+
+### Install and run
+
+```bash
+pnpm install
+pnpm dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open the local URL printed by Vite, add today's first goal, and start focusing.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Commands
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+pnpm dev       # Start the Vite development server
+pnpm build     # Type-check and create a production build
+pnpm lint      # Run ESLint
+pnpm test      # Run the Vitest test suite
+pnpm preview   # Preview the production build locally
 ```
+
+## Tech stack
+
+- React 19 with TypeScript
+- Vite 8
+- IndexedDB through [`idb`](https://github.com/jakearchibald/idb)
+- Vitest for timer behavior tests
+- ESLint with TypeScript and React Hooks rules
+- React Compiler enabled through the Vite setup
+
+## Project shape
+
+The app keeps behavior close to the feature it powers:
+
+- `src/App.tsx` coordinates the current-day workflow, persistence, rollover, and timer actions.
+- `src/components/` contains the dashboard, goal controls, summaries, reflections, reset flow, and history view.
+- `src/timer.ts` owns timestamp-based timer transitions.
+- `src/goalValidation.ts` centralizes goal and manual-time validation.
+- `src/storage.ts` provides the typed IndexedDB boundary.
+- `src/types.ts` defines the daily record and goal model.
+
+## Product boundaries
+
+Today's Focus is intentionally designed around the current local calendar day. It does not provide shared workspaces, notifications, recurring tasks, cloud sync, or account-based access. The constraint is the feature: less maintenance, fewer distractions, and a clearer finish line.
