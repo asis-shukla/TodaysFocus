@@ -25,9 +25,18 @@ function formatElapsed(seconds: number) {
   return `${minutes}m ${String(remainingSeconds).padStart(2, "0")}s`;
 }
 
+function formatDurationMinutes(totalMinutes: number) {
+  if (totalMinutes < 60) {
+    return `${totalMinutes}m`;
+  }
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const hourLabel = `${hours} hour${hours === 1 ? "" : "s"}`;
+  return minutes > 0 ? `${hourLabel} ${minutes} minute${minutes === 1 ? "" : "s"}` : hourLabel;
+}
+
 function formatWorkedTime(seconds: number) {
-  const minutes = Math.floor(seconds / 60);
-  return minutes >= 60 ? `${Math.floor(minutes / 60)}h ${minutes % 60}m` : `${minutes}m`;
+  return formatDurationMinutes(Math.floor(seconds / 60));
 }
 
 function sortGoalsForDisplay(goals: Goal[]) {
@@ -110,7 +119,7 @@ function PreviousRecordsDashboard({
               <p className="records-summary">
                 {progressPercent}% complete - {completedGoals}/{goals.length} goals completed
               </p>
-              <p className="records-summary">{plannedMinutes}m planned / {formatWorkedTime(workedSeconds)} worked</p>
+              <p className="records-summary">{formatDurationMinutes(plannedMinutes)} planned / {formatWorkedTime(workedSeconds)} worked</p>
 
               {goals.length === 0 ? (
                 <p className="empty-state">No goals were recorded on this day.</p>

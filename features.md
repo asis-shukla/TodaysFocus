@@ -98,6 +98,7 @@ Use `crypto.randomUUID()` for goal IDs, with a timestamp fallback if unavailable
 - The same title and duration validation used by the add form applies when saving edits.
 - Cancelling an edit leaves the original goal unchanged.
 - Saved edits persist in IndexedDB.
+- Running and paused goals expose an Edit control in a disabled state with accessible explanatory text; completed goals do not expose Edit.
 
 **Implementation details**:
 
@@ -105,7 +106,7 @@ Use `crypto.randomUUID()` for goal IDs, with a timestamp fallback if unavailable
 - Edit fields reuse the add form's title and whole-minute duration validation, with field-associated accessibility messages.
 - Saving awaits the IndexedDB write before updating in-memory state and preserves the goal's timer, elapsed-time, status, creation, and completion fields.
 - Cancelling discards draft changes without modifying the persisted or displayed goal.
-- Running, paused, and completed goals do not expose an Edit action; a goal remains locked after its timer has started.
+- Running and paused goals keep the Edit control visible but disabled, with explanatory tooltip/accessible label text indicating editing is unavailable after timing starts; completed goals do not expose Edit.
 - Storage failures keep the edit form open, leave the goal unchanged, show the existing persistence error, and disable further editing.
 
 ## Feature 4: Complete a Goal - DONE
@@ -209,15 +210,15 @@ const workedSeconds = goals.reduce(
 );
 ```
 
-Format values as `0m`, `45m`, or `1h 20m`, rounding down to whole displayed minutes. Planned time includes every goal; worked time includes completed goals only.
+Format values as `0m`, `45m`, `1 hour`, or `1 hour 20 minutes`, rounding down to whole displayed minutes. Planned time includes every goal; worked time includes completed goals only.
 
 **Implementation details**:
 
 - `FocusSummary` component displays planned and worked time totals near the top of the dashboard.
 - Planned minutes calculated as the sum of all goal `estimatedMinutes` regardless of status.
 - Worked minutes calculated as the sum of `elapsedSeconds` divided by 60, for completed goals only, rounded down to whole minutes.
-- Time formatting converts values to readable format: `45m` for minutes only, `1h 20m` for hours and minutes.
-- The summary displays as `45m planned / 30m worked`, updating immediately when goals are added, completed, or edited.
+- Time formatting converts values to readable format: `45m` for minutes only, `1 hour` for exact hours, and `1 hour 20 minutes` for mixed hours/minutes.
+- The summary displays as `45m planned / 30m worked` or long-form hour-based values, updating immediately when goals are added, completed, or edited.
 - With zero values, displays as `0m planned / 0m worked`.
 
 ## Feature 8: Planned Goals List - DONE
@@ -240,7 +241,7 @@ Format values as `0m`, `45m`, or `1h 20m`, rounding down to whole displayed minu
 - Running goal is distinguishable by the status text showing `running`, not by color alone, ensuring accessible visual distinction.
 - Active goals section shows goal count with limit indicator (e.g., `2 / 5`).
 - Empty state message displays: `Add up to 5 focus goals for today.`
-- Goal controls include Start/Pause button, completion checkbox, and Edit button (for planned goals only).
+- Goal controls include Start/Pause button, completion checkbox, and an Edit button shown for non-completed goals; Edit is enabled only for planned goals and disabled for running/paused goals.
 - List updates reactively when goals are added, edited, completed, or status changes.
 
 ## Feature 9: Completed Goals Section - DONE
@@ -279,27 +280,34 @@ Format values as `0m`, `45m`, or `1h 20m`, rounding down to whole displayed minu
 - Notes may be empty
 - Notes save automatically with debounce
 - Notes flush on blur where practical
+- Notes input remains editable while a save is in flight, unless globally disabled by loading or storage error state
 - Notes persist under today's record
 - Failed saves show the storage error and disable editing
 
 **Implementation details**:
 
-- `NotesSection` component is a stateful React component that accepts three props:
+- `NotesSection` component is a stateful React component that accepts four props:
   - `notes: string` — the current notes from `dailyFocus.notes`
   - `isDisabled: boolean` — disabled when loading or storage error occurs
+  - `resetVersion: number` — reset signal used to clear pending debounce work and sync to freshly reset notes
   - `onSaveNotes: (notes: string) => Promise<void>` — async callback to App.tsx to persist notes
   
 - **Local state management**:
   - `draftNotes: string` — tracks the user's current input; synced from props on mount/change via `useEffect`
-  - `isSaving: boolean` — indicates a save is in flight; disables the textarea during saves
+  - `isSaving: boolean` — indicates a save is in flight and is exposed to assistive technology via `aria-busy`
   - `localError: string | null` — component-level error message; shown when a save fails
   - `debounceTimerRef` — useRef to manage debounce timer for cancellation and cleanup
   - `isUnmountingRef` — useRef to prevent state updates after unmount
+  - `hasPendingEditsRef` — tracks unsaved keystrokes to prevent prop-sync updates from overwriting newer in-progress typing
 
 - **Auto-save with 1000ms debounce**:
   - `onChange` handler updates `draftNotes`, cancels any pending debounce timer, and schedules a new 1000ms timer
   - The timer callback compares `draftNotes` to saved `notes` and only calls `onSaveNotes()` if they differ (prevents unnecessary saves)
-  - Textarea is disabled during saves (`disabled={isDisabled || isSaving}`)
+  - Notes remain editable while saves are in flight; only global disabled states (loading/storage error) block input
+
+- **Sync safety during in-flight saves**:
+  - Prop-driven draft synchronization is skipped while unsaved local edits exist, preventing the completion of an earlier autosave from overwriting more recent keystrokes
+  - Reset-triggered sync clears pending debounce work and reapplies persisted notes for the fresh-day record
 
 - **Blur flush**:
   - `onBlur` handler immediately cancels the pending debounce timer and calls `saveNotes()` if `draftNotes !== notes`
@@ -319,7 +327,7 @@ Format values as `0m`, `45m`, or `1h 20m`, rounding down to whole displayed minu
 - **Accessibility**:
   - Textarea is semantically labelled with `<label>` (visually hidden)
   - Section heading uses `aria-labelledby="notes-heading"` linking to `<h2 id="notes-heading">`
-  - Form field has descriptive aria attributes when errors occur
+  - Form field has descriptive aria attributes when errors occur and exposes save-in-progress state via `aria-busy`
   - Placeholder text guides the user: `What did you learn today?`
 
 - **Props integration in App.tsx**:
@@ -329,7 +337,7 @@ Format values as `0m`, `45m`, or `1h 20m`, rounding down to whole displayed minu
     - Awaits `saveDailyFocus()` before updating in-memory state
     - Clears global `storageError` on success, sets it on failure (follows GoalForm pattern)
     - Re-throws error so NotesSection displays local error message
-  - NotesSection receives props: `notes={dailyFocus?.notes ?? ""}`, `isDisabled={isLoading || Boolean(storageError)}`, `onSaveNotes={handleSaveNotes}`
+  - NotesSection receives props: `notes={dailyFocus?.notes ?? ""}`, `isDisabled={isLoading || Boolean(storageError)}`, `resetVersion={resetVersion}`, `onSaveNotes={handleSaveNotes}`
   - On initial load and day rollover, existing notes are loaded from IndexedDB and synced into the textarea
 
 - **Persistence**:
@@ -554,6 +562,7 @@ function getLocalDateKey(date = new Date()) {
 - The date list intentionally excludes the current local date, showing prior records only. When records exist, the newest previous date is auto-selected.
 - Storage reuses the existing IndexedDB database `todays-focus-db` and `dailyFocus` store. A new read helper enumerates stored `dateKey` values for the left panel.
 - Selecting a date reads that `DailyFocusData` record and displays it read-only: goals with statuses, estimated durations, persisted elapsed durations, completion progress, completion timestamps, and notes.
+- Planned and worked summary durations in the history details panel use the same readable formatter as today's summary, including long-form hour text when totals exceed 59 minutes.
 - Historical running goals are displayed with persisted elapsed values only. The history view does not start timers or derive extra elapsed time from the current clock.
 - History loading and selection failures surface visible errors within the history view and do not silently render partial data.
 - The history view keeps destructive day actions out of scope for historical data; users cannot start, pause, complete, edit, delete, or reset historical goals from this screen.

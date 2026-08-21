@@ -17,6 +17,7 @@ function NotesSection({ notes, isDisabled, resetVersion, onSaveNotes }: NotesSec
   const notesRef = useRef(notes);
   const isDisabledRef = useRef(isDisabled);
   const onSaveNotesRef = useRef(onSaveNotes);
+  const hasPendingEditsRef = useRef(false);
 
   useEffect(() => {
     draftNotesRef.current = draftNotes;
@@ -26,14 +27,25 @@ function NotesSection({ notes, isDisabled, resetVersion, onSaveNotes }: NotesSec
   }, [draftNotes, isDisabled, notes, onSaveNotes]);
 
   useEffect(() => {
+    // Skip syncing while the user has unsaved keystrokes, otherwise the echo of a
+    // completed autosave would overwrite characters typed during that save.
+    if (hasPendingEditsRef.current) {
+      return;
+    }
+
     const syncTimer = window.setTimeout(() => setDraftNotes(notes), 0);
+
+    return () => window.clearTimeout(syncTimer);
+  }, [resetVersion, notes]);
+
+  useEffect(() => {
+    hasPendingEditsRef.current = false;
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;
     }
-
-    return () => window.clearTimeout(syncTimer);
-  }, [resetVersion, notes]);
+    setDraftNotes(notesRef.current);
+  }, [resetVersion]);
 
   // Save notes to IndexedDB
   async function saveNotes(notesToSave: string) {
@@ -47,6 +59,9 @@ function NotesSection({ notes, isDisabled, resetVersion, onSaveNotes }: NotesSec
 
     try {
       await onSaveNotes(notesToSave);
+      if (draftNotesRef.current === notesToSave) {
+        hasPendingEditsRef.current = false;
+      }
     } catch {
       // Error is already set by App.tsx storageError, but also display locally
       if (!isUnmountingRef.current) {
@@ -61,12 +76,13 @@ function NotesSection({ notes, isDisabled, resetVersion, onSaveNotes }: NotesSec
 
   // Handle onChange: debounce the save
   function handleChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
-    if (isDisabled || isSaving) {
+    if (isDisabled) {
       return; // Prevent edits when disabled
     }
 
     const newValue = event.target.value;
     setDraftNotes(newValue);
+    hasPendingEditsRef.current = true;
 
     // Cancel pending debounce timer
     if (debounceTimerRef.current) {
@@ -87,7 +103,7 @@ function NotesSection({ notes, isDisabled, resetVersion, onSaveNotes }: NotesSec
     }
 
     // If draftNotes differs from saved notes, save immediately
-    if (draftNotes !== notes && !isSaving && !isDisabled) {
+    if (draftNotes !== notes && !isDisabled) {
       void saveNotes(draftNotes);
     }
   }
@@ -127,7 +143,8 @@ function NotesSection({ notes, isDisabled, resetVersion, onSaveNotes }: NotesSec
         value={draftNotes}
         onChange={handleChange}
         onBlur={handleBlur}
-        disabled={isDisabled || isSaving}
+        disabled={isDisabled}
+        aria-busy={isSaving}
         aria-invalid={Boolean(localError)}
         aria-describedby={errorId}
       />

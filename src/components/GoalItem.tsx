@@ -24,6 +24,8 @@ function GoalItem({ goal, isDisabled, onEditGoal, now, onStartGoal, onPauseGoal,
   const [isManualEntryOpen, setIsManualEntryOpen] = useState(false);
   const [manualMinutes, setManualMinutes] = useState("");
   const [manualMinutesError, setManualMinutesError] = useState<string | null>(null);
+  const isEditDisabled = isDisabled || status !== "planned";
+  const editDisabledMessage = "Editing is unavailable after a goal has started.";
   const elapsedSeconds = status === "running" && goal.activeStartedAt
     ? goal.elapsedSeconds + Math.max(0, Math.floor((now - Date.parse(goal.activeStartedAt)) / 1000))
     : goal.elapsedSeconds;
@@ -222,10 +224,18 @@ function GoalItem({ goal, isDisabled, onEditGoal, now, onStartGoal, onPauseGoal,
             <span className="completion-tooltip" role="tooltip">Complete Goal</span>
           </button>
         )}
-        {status === "planned" && (
-          <button className="text-button" type="button" onClick={startEditing} disabled={isDisabled}>
-            Edit
-          </button>
+        {status !== "completed" && (
+          <span title={isEditDisabled && status !== "planned" ? editDisabledMessage : undefined}>
+            <button
+              className="text-button"
+              type="button"
+              onClick={startEditing}
+              disabled={isEditDisabled}
+              aria-label={isEditDisabled && status !== "planned" ? `${editDisabledMessage} Goal: ${title}` : `Edit goal: ${title}`}
+            >
+              Edit
+            </button>
+          </span>
         )}
       </div>
     </article>

@@ -7,6 +7,16 @@ type FocusSummaryProps = {
   workedMinutes: number;
 };
 
+function formatDurationMinutes(totalMinutes: number) {
+  if (totalMinutes < 60) {
+    return `${totalMinutes}m`;
+  }
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const hourLabel = `${hours} hour${hours === 1 ? "" : "s"}`;
+  return minutes > 0 ? `${hourLabel} ${minutes} minute${minutes === 1 ? "" : "s"}` : hourLabel;
+}
+
 function FocusSummary({
   completedGoals,
   totalGoals,
@@ -27,7 +37,7 @@ function FocusSummary({
       <ProgressBar percentage={percentage} />
       <div className="summary-footer">
         <span>{percentage}% complete - {completedGoals}/{totalGoals} goals completed</span>
-        <span>{plannedMinutes}m planned <b aria-hidden="true">/</b> {workedMinutes}m worked</span>
+        <span>{formatDurationMinutes(plannedMinutes)} planned <b aria-hidden="true">/</b> {formatDurationMinutes(workedMinutes)} worked</span>
       </div>
     </section>
   );

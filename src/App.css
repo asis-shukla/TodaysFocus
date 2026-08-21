@@ -417,16 +417,22 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 150px auto;
   gap: 12px;
-  align-items: end;
+  align-items: start;
   width: 100%;
 }
 
 .goal-edit-form label {
   display: grid;
+  grid-template-rows: auto 44px minmax(18px, auto);
   gap: 7px;
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 700;
+}
+
+.goal-edit-form > .goal-actions {
+  align-self: start;
+  margin-top: 29px;
 }
 
 .goal-edit-form > .field-error {
@@ -440,6 +446,13 @@
   background: transparent;
   font-size: 13px;
   font-weight: 700;
+}
+
+.text-button:disabled,
+.text-button:disabled:hover {
+  color: var(--placeholder);
+  cursor: not-allowed;
+  transform: none;
 }
 
 .settings-trigger {
